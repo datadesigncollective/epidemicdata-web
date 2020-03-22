@@ -1,0 +1,1 @@
+window.ed.AU_State_iso_to_t = [["index", "name"], ["AU-ACT", "Australian Capital Territory"], ["XDP", "From Diamond Princess"], ["AU-NSW", "New South Wales"], ["AU-NT", "Northern Territory"], ["AU-QLD", "Queensland"], ["AU-SA", "South Australia"], ["AU-TAS", "Tasmania"], ["AU-VIC", "Victoria"], ["AU-WA", "Western Australia"]];

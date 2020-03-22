@@ -1,0 +1,263 @@
+console.log('my_mixin loaded');
+var my_mixin = {
+	created: function() {
+		this.hello();
+	},
+	methods: {
+		hello: function() {
+			console.log("hello from MIXIN!");
+		},
+		update_chart_options_from_query: function ()
+		{
+			for (let chart_key_index in this.$route.query)
+			{
+				if (
+					(typeof(this.charts[chart_key_index])!=='undefined') &&
+					(typeof(this.charts[chart_key_index].options!=='undefined'))
+				)
+				{
+					let chart_options_from_url = JSON.parse(this.$route.query[chart_key_index]);
+					this.charts[chart_key_index].options = Object.assign({}, this.charts[chart_key_index].options, chart_options_from_url);
+				}
+			}
+		},
+		get_query_from_chart_options: function ()
+		{
+		ret = {};
+			for (let chart_key_index in this.charts)
+			{
+			let chart = this.charts[chart_key_index];
+				if (typeof(chart.options)!=='undefined')
+				{
+					// todo: create default and compare
+					diff = difference.compare(chart.default_options, chart.options);
+					if (Object.keys(diff).length)
+					{
+					ret[chart_key_index] = JSON.stringify(diff); // .replace('"c"', 'c').replace('"d"', 'd');
+					}
+				}
+			}
+		//ret_json = JSON.stringify(ret);
+		//console.log("options", ret, ret_json, ret_json_w);
+		return ret;
+		},
+		reload_chart_data: function(chart_key)
+		{
+			query = this.get_query_from_chart_options();
+			if (Object.keys(query).length)
+			{
+				router.replace({ path: 'testmap.html', query: query });
+			}
+			else
+			{
+				router.replace({ path: 'testmap.html'});
+			}
+			// history.replaceState(item2, "title 3", "?item2="+item2_string);
+		this.get_chart_data_for_source(chart_key);
+		this.recalculate_embed_url(chart_key);
+		},
+		get_chart_data_for_source: function(chart_key)
+		{
+			let chart = this.charts[chart_key];
+			let data_source = chart.data_source;
+				switch (chart.chart_type)
+				{
+					case "global_map_plain":
+					data_source = data_source.replace('%c%', chart.options.c.replace(/ /g, '_')).replace('%d%', chart.options.d);
+					break;
+				}
+				if (typeof(this.data_from_source[data_source])=='undefined')
+				{
+					
+					let data_source_url = window.data_folder+data_source+".csv";
+					this.data_from_source[data_source] = this.get_data_from_ajax_csv(data_source_url);
+				}
+			chart.original_data =  this.data_from_source[data_source];
+			console.log("chart.original_data", chart.original_data);
+			this.refilter_chart_data_by_columns(chart_key)
+		},
+		get_data_from_ajax_csv: function(url)
+		{
+			arr = $.csv.toArrays($.ajax({
+				url: url,
+				dataType: "csv",
+				async: false
+			}).responseText);
+			for (ri=1, rl=arr.length; ri<rl; ri++)
+			{
+				for (ci=1, cl=arr[ri].length; ci<cl; ci++)
+				{
+					
+					arr[ri][ci] = parseFloat(arr[ri][ci]);
+				}
+			}
+			return arr;
+		},
+		redraw: function (chart_key)
+		{
+			let chart = this.charts[chart_key];
+			switch (chart.chart_type)
+			{
+			case "global_map_plain":
+				this.draw_geo_chart(chart_key);
+			break;
+			}
+			
+			// query = JSON.parse(JSON.stringify(this.$route.query));
+			// query.usa=this.plain_data[2][1];
+			// router.replace({ path: this.$route.path, query: query });
+		},
+		draw_geo_chart: function(chart_key)
+		{
+			console.warn('draw_geo_chart', chart_key);
+			let chart = this.charts[chart_key];
+			var options = {
+				// TODO: if there is an option, put it here
+				colorAxis: {
+					colors: [
+						// TODO: check min and max values, if min_value<0, add 3 colors
+						// TODO: different colors for different charts as Recovered vs Deaths
+						'#f5f5f5',
+						'#7a0000',
+						// '#7a0000',
+						// '#7a0000'
+					]
+				},
+				backgroundColor: '#eaf7fa',
+				datalessRegionColor: 'white',
+				defaultColor: '#f5f5f5',
+			};
+				
+				if ((typeof(chart.google_chart)=='undefined') || (chart.google_chart==null))
+				{
+					let element_id = "google_chart_"+chart_key;
+					console.log("create new GeoChart", element_id, google, google.visualization);
+					console.log("document.getElementById(element_id)", document.getElementById(element_id));
+					chart.google_chart = new google.visualization.GeoChart(document.getElementById(element_id));
+				}
+			let partial_filtered_data = [];
+				for (ri=0, rl=chart.filtered_data.length; ri<3; ri++)
+				{
+					partial_filtered_data.push(chart.filtered_data[ri]);
+				}
+			console.log("chart.filtered_data", chart.filtered_data, "partial_filtered_data", partial_filtered_data);
+			var data_table = google.visualization.arrayToDataTable(chart.filtered_data);
+			chart.google_chart.draw(data_table, options);
+		},
+		refilter_chart_data_by_columns: function(chart_key)
+		{
+			console.warn('refilter_chart_data_by_columns', chart_key);
+			// TODO: cache this, but beware: the original_data can change and we have to make the cache obsolate
+			let chart = this.charts[chart_key];
+			let column_labels = [];
+			let replace_labels = '';
+				switch (chart.chart_type)
+				{
+				case "global_map_plain":
+					column_labels = [chart.options.d];
+					replace_labels = chart.options.c;
+				break;
+				}
+			
+			let filtered_data = this.filter_data_by_column_labels(chart.original_data, column_labels, replace_labels);
+			chart.filtered_data = Object.assign([], [], filtered_data);
+			this.redraw(chart_key);
+		},
+		filter_data_by_column_labels: function(data, column_labels, replace_labels='', use_first_column=true)
+		{
+			console.warn('filter_data_by_column_labels', data, column_labels, use_first_column);
+			column_indices = [];
+			new_labels = ['Country'];
+			for (let i=0, c=data[0].length; i<c; i++)
+			{
+				if (column_labels.includes(data[0][i]))
+				{
+					column_indices.push(i);
+					new_labels.push(replace_labels); // TODO temp hack, only with one column
+				}
+			}
+			ret = this.filter_data_by_column_indices(data, column_indices, use_first_column);
+			console.log("new_labels", new_labels);
+			ret[0] = new_labels;
+			
+			return ret;
+		},
+		filter_data_by_column_indices: function(data, column_indices, use_first_column=true)
+		{
+			let ret = [];
+			for (let ri=0, rl=data.length; ri<rl; ri++)
+			{
+				let row = [];
+				for (let ci=0, cl=data[ri].length; ci<cl; ci++)
+				{
+					if (
+						((ci===0)&&(use_first_column)) ||
+						column_indices.includes(ci)
+					)
+					{
+						row.push(data[ri][ci]);
+					}
+				}
+				ret.push(row);
+			}
+			return ret;
+		},
+		save_as_image: function(chart_key)
+		{
+			let chart = window.app.charts[chart_key];
+			chart.image_generating = 1;
+			let outer_element_id = 'google_chart_'+chart_key+'_outer';
+			let image_element_id = 'google_chart_'+chart_key+'_image';
+			let image_container_element_id = 'google_chart_'+chart_key+'_image_container';
+			let image_container_element = document.getElementById(image_container_element_id);
+			let image_container_outer_element_id = 'google_chart_'+chart_key+'_image_container_outer';
+			let image_container_outer_element = document.getElementById(image_container_outer_element_id);
+			console.log("window.app.charts[chart_key]", chart);
+			image_container_element.innerHTML = '<img src="' + chart.google_chart.getImageURI() + '" id="'+image_element_id+'">';
+			let image_element = document.getElementById(image_element_id);
+			setTimeout(function(){
+				chart.image_generating = 2;
+				let options = {}; // {'width': image_element.offsetWidth, 'height': image_element.offsetHeight};
+				console.log("html2canvas options", options);
+				let canvas_container_element_id = 'google_chart_'+chart_key+'_canvas_container';
+				let canvas_container = document.getElementById(canvas_container_element_id);
+				let current_scroll_top = document.documentElement.scrollTop;
+				let current_scroll_left = document.documentElement.scrollLeft;
+				window.scrollTo(0,0);
+				html2canvas(image_container_outer_element, options).then(canvas => {
+					console.log("canvas", canvas);
+					canvas.id = 'google_chart_'+chart_key+'_canvas';
+					canvas_container.innerHTML = '';
+					canvas_container.appendChild(canvas);
+					canvas.toBlob(function(blob) {
+						saveAs(blob, "some_filename"+".png");
+					});
+				});
+				window.scrollTo(current_scroll_left, current_scroll_top);
+			},1000);
+		},
+		save_canvas_to_image(chart_key, filename)
+		{
+		canvas_element_id = 'google_chart_'+chart_key+'_canvas';
+		canvas = document.getElementById(canvas_element_id);
+			canvas.toBlob(function(blob) {
+				saveAs(blob, filename+".png");
+			});
+		},
+		recalculate_embed_url: function(chart_key)
+		{
+			let chart = this.charts[chart_key];
+			let this_options = copy_object(chart.options);
+				if (!chart.embed_options.fixed_date)
+				{
+					this_options['d'] = 'x';
+				}
+			chart.embed_url = encodeURI('https://epidemicdata.com/chart?'+chart_key+'='+JSON.stringify(this_options));
+		},
+		show_hide_embed: function(chart_key)
+		{
+			this.charts[chart_key].show_embed = !this.charts[chart_key].show_embed;
+			this.recalculate_embed_url(chart_key)
+		},
+	}
+};
