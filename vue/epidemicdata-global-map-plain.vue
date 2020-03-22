@@ -84,7 +84,7 @@
 		},
 		components: {
 			'vueSlider': window[ 'vue-slider-component' ],
-			'epidemicdataGlobalMapPlain': httpVueLoader('/vue/epidemicdata-global-map-plain.vue'),
+			'epidemicdataGlobalMapPlain': httpVueLoader(window.ed.source_location + '/vue/epidemicdata-global-map-plain.vue'),
 		},
 		//mixins: [my_mixin],
 	}

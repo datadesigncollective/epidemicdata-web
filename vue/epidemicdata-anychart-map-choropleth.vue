@@ -93,7 +93,7 @@
         },
 		components: {
 			'vueSlider': window[ 'vue-slider-component' ],
-			'epidemicdata-info-div': httpVueLoader('/vue/epidemicdata-info-div.vue'),
+			'epidemicdata-info-div': httpVueLoader(window.ed.source_location + '/vue/epidemicdata-info-div.vue'),
 		},
 		//mixins: [my_mixin],
 	}

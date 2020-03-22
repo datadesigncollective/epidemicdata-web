@@ -61,8 +61,8 @@
 			// });
         },
 		components: {
-			'epidemicdata-info-div': httpVueLoader('/vue/epidemicdata-info-div.vue'),
-			'epidemicdata-imagegenerating-div': httpVueLoader('/vue/epidemicdata-imagegenerating-div.vue'),
+			'epidemicdata-info-div': httpVueLoader(window.ed.source_location + '/vue/epidemicdata-info-div.vue'),
+			'epidemicdata-imagegenerating-div': httpVueLoader(window.ed.source_location + '/vue/epidemicdata-imagegenerating-div.vue'),
 		},
 		//mixins: [my_mixin],
 	}

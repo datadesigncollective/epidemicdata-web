@@ -139,10 +139,10 @@
 		components: {
 			'vueSlider': window[ 'vue-slider-component' ],
 			//'epidemicdataGlobalMapPlain': httpVueLoader('/vue/epidemicdata-global-map-plain.vue'),
-			'epidemicdataAnychartMapChoropleth': httpVueLoader('/vue/epidemicdata-anychart-map-choropleth.vue'),
-			'epidemicdataAnychartArea': httpVueLoader('/vue/epidemicdata-anychart-area.vue'),
-			'epidemicdataGoogleArea': httpVueLoader('/vue/epidemicdata-google-area.vue'),
-			'epidemicdataGoogleLine': httpVueLoader('/vue/epidemicdata-google-line.vue'),
+			'epidemicdataAnychartMapChoropleth': httpVueLoader(window.ed.source_location + '/vue/epidemicdata-anychart-map-choropleth.vue'),
+			'epidemicdataAnychartArea': httpVueLoader(window.ed.source_location + '/vue/epidemicdata-anychart-area.vue'),
+			'epidemicdataGoogleArea': httpVueLoader(window.ed.source_location + '/vue/epidemicdata-google-area.vue'),
+			'epidemicdataGoogleLine': httpVueLoader(window.ed.source_location + '/vue/epidemicdata-google-line.vue'),
 		},
 		//mixins: [my_mixin],
 	}
