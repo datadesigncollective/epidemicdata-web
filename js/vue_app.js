@@ -324,7 +324,7 @@ window.app = new Vue({
 			}
 		},
 	components: {
-		'epidemicdataPage': httpVueLoader('/vue/epidemicdata-page.vue'),
+		'epidemicdataPage': httpVueLoader(window.ed.source_location + '/vue/epidemicdata-page.vue'),
 	},
 	mixins: [my_mixin],
 });

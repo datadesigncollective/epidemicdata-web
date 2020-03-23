@@ -68,7 +68,7 @@ function load_app()
 ////////////////////////////////////////////////////////////////////////////////////////////
 
 window.ed = {};
-window.ed.source_location = ''; // TODO: github or local depending on uri
+window.ed.source_location = 'https://cdn.jsdelivr.net/gh/datadesigncollective/epidemicdata-web/'; // TODO: github or local depending on uri
 window.ed.data_folder = '/p/data/'; // TODO: github or local depending on uri
 
 load_style('//unpkg.com/bootstrap/dist/css/bootstrap.min.css');
