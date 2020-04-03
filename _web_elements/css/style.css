@@ -1,0 +1,141 @@
+html,
+body,
+.tooltip,
+.popover{
+    font-family: 'Montserrat', sans-serif;
+    font-size: 14px;
+}
+
+.map_slider
+{
+    height: 100px;
+    padding: 0px 28px;
+}
+
+.bg-dark
+{
+background-color: #636363!important;
+background: linear-gradient(90deg, #1a0f49 0px, #1a0f49 240px, #444444);
+}
+
+body .anychart-credits
+{
+    display: none!important;
+}
+
+body .vue-slider
+{
+    height: 8px!important;
+    cursor: pointer;
+}
+
+body .vue-slider-ltr .vue-slider-mark-label
+{
+    display: inline-block;
+    -ms-transform: translateX(-88%) translateY(7px) rotate(300deg);
+    transform: translateX(-75%) translateY(12px) rotate(300deg);
+    -color: red!important;
+    font-size: 12px;
+}
+
+.google_chart_type_global_map_plain_slider
+{
+    height: 80px!important;
+    margin-left: 40px;
+}
+
+.info_div
+{
+    font-size: 12px;
+    color: #999999;
+    text-align: right;
+    padding-right: 12px;
+}
+
+.chart_type_anychart_map_choropleth .info_div
+{
+padding-right: 16px;
+}
+
+.info_div A,
+.info_div A:visited
+{
+    color: #888888;
+}
+
+.info_div A:hover
+{
+    color: #666666;
+    text-decoration: underline;
+}
+
+.display_none
+{
+    display: none;
+}
+
+h1, h2, h3, h4, h5, h6,
+.h1, .h2, .h3, .h4, .h5, .h6 {
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    line-height: 1.2;
+    margin-top: 40px;
+    padding-top: 20px;
+    padding-left: 20px;
+}
+
+h1:not(:first-child), h2:not(:first-child), h3:not(:first-child), h4:not(:first-child), h5:not(:first-child), h6:not(:first-child),
+.h1:not(:first-child), .h2:not(:first-child), .h3:not(:first-child), .h4:not(:first-child), .h5:not(:first-child), .h6:not(:first-child) {
+    border-top: 1px solid #eeeeee;
+}
+
+.image_generating .hide_for_image
+{
+display: none;
+}
+
+body .google-visualization-tooltip
+{
+background-color: #ffffff;
+/*margin-left: -195px;
+margin-top: -5px;*/
+
+    box-shadow: none;
+    font-size: 12px;
+    padding: 0px;
+    -moz-box-shadow: none;
+    -webkit-box-shadow: none;
+    z-index: 100000;
+}
+
+body .google-visualization-tooltip-item-list
+{
+}
+
+.summary_col
+{
+margin: 0px 10px;
+border-radius: 4px;
+padding: 8px;
+}
+
+.summary_col:last-child
+{
+margin-right: 0px;
+}
+
+.summary_col_number
+{
+font-size: 2em;
+    font-weight: 700;
+}
+
+#chart_container_summary_table
+{
+max-width: 700px;
+}
+
+.chart_container
+{
+padding-right: 10.5px;
+}

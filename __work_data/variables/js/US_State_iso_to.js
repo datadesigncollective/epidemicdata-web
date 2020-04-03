@@ -1,0 +1,1 @@
+window.ed.US_State_iso_to = [["index", "US-AK"], ["name", ""]];
