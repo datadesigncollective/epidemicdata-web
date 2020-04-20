@@ -1,1 +1,2 @@
-console.log('test.js V0004 loaded');
+console.log('test.js V0005 loaded');
+//
