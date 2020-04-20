@@ -146,6 +146,8 @@ load_style('//stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min
 
 
 window.ed.scripts_to_load = [
+	//'https://raw.githubusercontent.com/datadesigncollective/epidemicdata-web/master/test.js',
+	'https://datadesigncollective.github.io/epidemicdata-web/test.js',
 	'//polyfill.io/v3/polyfill.min.js?features=es2015%2CIntersectionObserver',
 	//'//cdnjs.cloudflare.com/ajax/libs/vue/2.6.11/vue.min.js',
 	'//cdn.jsdelivr.net/gh/datadesigncollective/epidemicdata-web/__static/js/vue.min.js',
