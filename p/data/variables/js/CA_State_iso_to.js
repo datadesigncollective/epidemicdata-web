@@ -1,1 +1,0 @@
-window.ed.CA_State_iso_to = [["index", "CA-AB", "CA-BC", "XGP", "CA-MB", "CA-NB", "CA-NL", "CA-NT", "CA-NS", "CA-ON", "CA-PE", "CA-QC", "CA-SK"], ["name", "Alberta", "British Columbia", "Grand Princess", "Manitoba", "New Brunswick", "Newfoundland and Labrador", "Northwest Territories", "Nova Scotia", "Ontario", "Prince Edward Island", "Quebec", "Saskatchewan"]];

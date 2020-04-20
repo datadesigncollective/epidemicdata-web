@@ -21,10 +21,12 @@ BJ,Benin
 BT,Bhutan
 BO,Bolivia
 BA,Bosnia and Herzegovina
+BW,Botswana
 BR,Brazil
 BN,Brunei
 BG,Bulgaria
 BF,Burkina Faso
+BI,Burundi
 CV,Cabo Verde
 KH,Cambodia
 CM,Cameroon
@@ -85,7 +87,7 @@ JP,Japan
 JO,Jordan
 KZ,Kazakhstan
 KE,Kenya
-RS,Serbia
+XK,Kosovo
 KW,Kuwait
 KG,Kyrgyzstan
 LA,Lao
@@ -97,6 +99,7 @@ LI,Liechtenstein
 LT,Lithuania
 LU,Luxembourg
 MG,Madagascar
+MW,Malawi
 MY,Malaysia
 MV,Maldives
 ML,Mali
@@ -116,6 +119,7 @@ NP,Nepal
 NL,Netherlands
 NZ,New Zealand
 NI,Nicaragua
+NE,Niger
 NG,Nigeria
 MK,North Macedonia
 NO,Norway
@@ -138,14 +142,18 @@ KN,Saint Kitts and Nevis
 LC,Saint Lucia
 VC,Saint Vincent and the Grenadines
 SM,San Marino
+ST,Sao Tome and Principe
 SA,Saudi Arabia
 SN,Senegal
+RS,Serbia
 SC,Seychelles
+SL,Sierra Leone
 SG,Singapore
 SK,Slovakia
 SI,Slovenia
 SO,Somalia
 ZA,South Africa
+SS,South Sudan
 ES,Spain
 LK,Sri Lanka
 SD,Sudan
@@ -171,5 +179,7 @@ UZ,Uzbekistan
 VA,Vatican
 VE,Venezuela
 VN,Vietnam
+EH,Western Sahara
+YE,Yemen
 ZM,Zambia
 ZW,Zimbabwe

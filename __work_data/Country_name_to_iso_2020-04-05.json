@@ -142,7 +142,6 @@
     "Saint Lucia": "LC",
     "Saint Vincent and the Grenadines": "VC",
     "San Marino": "SM",
-    "Sao Tome and Principe": "ST",
     "Saudi Arabia": "SA",
     "Senegal": "SN",
     "Serbia": "RS",
@@ -181,5 +180,6 @@
     "Vietnam": "VN",
     "Western Sahara": "EH",
     "Zambia": "ZM",
-    "Zimbabwe": "ZW"
+    "Zimbabwe": "ZW",
+    "Sao Tome and Principe": "ST"
 }
