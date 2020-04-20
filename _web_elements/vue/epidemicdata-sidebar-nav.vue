@@ -17,8 +17,10 @@
                         <template v-for="(place, place_key) in this.$root.menu_world">
                             <a class="nav-link" :href="window.ed.root+'/'+place.uri" v-html="place.name"></a>
                         </template>
+                        <a class="nav-link" :href="window.ed.root+'/most-affected'" v-html="'Most Affected'"></a>
+                        <a class="nav-link" :href="window.ed.root+'/regions'" v-html="'Regions'"></a>
 
-                        <div class="sb-sidenav-menu-heading"v-show="Object.keys($root.menu_countries).length">Countries</div>
+                        <div class="sb-sidenav-menu-heading"v-show="Object.keys($root.menu_countries).length">Countries<span class="nav-link-number" v-html="'Active/Total'"></span></div>
                         <template v-for="(country, country_iso) in this.$root.menu_countries">
                             <a class="nav-link" :href="window.ed.root+'/'+country.uri"><span class="nav-link-label" v-html="country.name"></span> &nbsp;
                                 <span class="nav-link-number" v-html="country.TA+'/'+country.TC" title="Currently Active / Total Confirmed"></span></a>

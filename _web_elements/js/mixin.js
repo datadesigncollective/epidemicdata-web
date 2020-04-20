@@ -4,8 +4,13 @@ var my_mixin = {
 	
 	},
 	methods: {
+		toggle_mobile_menu: function()
+		{
+		this.$root.show_mobile_menu = this.$root.show_mobile_menu===1?0:1;
+		},
 		to_locale_string: function(datestring)
 		{
+		// c_onsole.log('to_locale_string', datestring);
 		let dt = new Date(datestring);
 		let ret = dt.toLocaleDateString('en-GB', {});
 		return ret;
@@ -16,7 +21,7 @@ var my_mixin = {
 			{
 				if (
 					(typeof(this.$root.charts[chart_key_index])!=='undefined') &&
-					(typeof(this.$root.charts[chart_key_index].options!=='undefined'))
+					(typeof(this.$root.charts[chart_key_index].options)!=='undefined')
 				)
 				{
 					let chart_options_from_url = JSON.parse(this.$route.query[chart_key_index]);
@@ -31,6 +36,16 @@ var my_mixin = {
 		{
 			this.$root.charts[chart_key].local_d = this.$root.to_locale_string(this.$root.charts[chart_key].options.d);
 		},
+		recalculate_local_dr: function(chart_key)
+		{
+			console.log('TODO: recalculate_local_dr', this.$root.charts[chart_key].options.dr);
+			// this.$root.charts[chart_key].local_dr = this.$root.to_locale_string(this.$root.charts[chart_key].options.dr);
+		},
+		recalculate_local_l: function(chart_key)
+		{
+			console.log('TODO: recalculate_local_l');
+			// this.$root.charts[chart_key].local_dr = this.$root.to_locale_string(this.$root.charts[chart_key].options.dr);
+		},
 		get_query_from_chart_options: function ()
 		{
 		ret = {};
@@ -41,7 +56,7 @@ var my_mixin = {
 				{
 					// todo: create default and compare
 					diff = difference.compare(chart.default_options, chart.options);
-					console.log("get_query_from_chart_options", "diff", diff, "default_options", chart.default_options, "options", chart.options);
+					console.log("get_query_from_chart_options", chart_key_index, "diff: ", diff, "default_options:", chart.default_options, "options:", chart.options);
 					for (let [var_key, var_val] of Object.entries(diff))
 					{
 						if (Array.isArray(var_val) && (var_val.length===0))
@@ -55,11 +70,11 @@ var my_mixin = {
 					}
 				}
 			}
-		//ret_json = JSON.stringify(ret);
-		//c_onsole.log("options", ret, ret_json, ret_json_w);
+		ret_json = JSON.stringify(ret);
+		console.log("get_query_from_chart_options SUM", "ret:", ret, 'ret_json:', ret_json);
 		return ret;
 		},
-		reload_chart_data: function(chart_key)
+		set_route_query: function()
 		{
 			query = this.$root.get_query_from_chart_options();
 			if (Object.keys(query).length)
@@ -82,19 +97,22 @@ var my_mixin = {
 					console.error("Catch:", error);
 				}
 			}
-			// history.replaceState(item2, "title 3", "?item2="+item2_string);
+		},
+		reload_chart_data: function(chart_key)
+		{
+		this.$root.set_route_query();
 		this.$root.get_chart_data_for_source(chart_key);
 		this.$root.recalculate_embed_url(chart_key);
 		},
 		reload_google_chart_data: function(chart_key, replace_router=true)
 		{
 			let query = this.$root.get_query_from_chart_options();
-			console.log("reload_google_chart_data", "query", query);
+			// c_onsole.log("reload_google_chart_data", "query", query);
 			if (Object.keys(query).length)
 			{
 				let has_diff = true;
 				// let has_diff = false;
-				// console.log('this.$route.query', this.$route.query);
+				// c_onsole.log('this.$route.query', this.$route.query);
 				// for ([var_key, var_json] of Object.entries(this.$route.query))
 				// {
 				// 	let var_val = JSON.parse(var_json);
@@ -112,7 +130,7 @@ var my_mixin = {
 				// 	}
 				// }
 				
-				console.log("router.replace", window.location.search, query, has_diff);
+				// c_onsole.log("router.replace", window.location.search, query, has_diff);
 				if (has_diff && replace_router)
 				{
 					router.replace({ path: window.location.pathname, query: query });
@@ -132,71 +150,134 @@ var my_mixin = {
 		// let hide_columns = [...Array(number_of_original_columns-1).keys()];
 		// view.hideColumns(hide_columns);
 		// view.showColumns(chart.options.c);
-		
-		let colors = Object.assign([], [], chart.column_colors);
-		let hide_columns = [];
-		console.log("number_of_original_columns, colors, chart.options.c", number_of_original_columns, Object.assign([], [], colors), chart.options.c);
-		for (let i=1, c=number_of_original_columns; i<=c; i++)
+		if ((chart.chart_type==='google_line') || (chart.chart_type==='google_line_region'))
 		{
-			let j = i-1;
-			console.log("j", j);
-			if (chart.options.c.indexOf(j)===-1)
+			let colors = Object.assign([], [], chart.column_colors);
+			let hide_columns = [];
+			// c_onsole.log("number_of_original_columns, colors, chart.options.c", number_of_original_columns, Object.assign([], [], colors), chart.options.c);
+			if (chart.options.c.length)
 			{
-				console.log("j", j, "HIDE");
-				hide_columns.push(j+1);
-				colors[j] = null;
+				for (let i = 1, c = number_of_original_columns; i <= c; i++)
+				{
+					let j = i - 1;
+					// c_onsole.log("j", j);
+					if (chart.options.c.indexOf(j) === -1)
+					{
+						// c_onsole.log("j", j, "HIDE");
+						hide_columns.push(j + 1);
+						colors[j] = null;
+					} else
+					{
+						// c_onsole.log("j", j, "ok");
+					}
+				}
 			}
-			else
-			{
-				console.log("j", j, "ok");
-			}
-		}
 			view.hideColumns(hide_columns);
-		console.log("hide_columns, new 1 colors", hide_columns, Object.assign([], [], colors));
-		
-		chart.google.options.colors = [];
-		for (let i=0, c=colors.length; i<c; i++)
-		{
-			if (colors[i]!==null)
+			console.log("hide_columns, new 1 colors", hide_columns, Object.assign([], [], colors));
+			
+			chart.google.options.colors = [];
+			for (let i = 0, c = colors.length; i < c; i++)
 			{
-				chart.google.options.colors.push(colors[i]);
+				if (colors[i] !== null)
+				{
+					chart.google.options.colors.push(colors[i]);
+				}
 			}
+			// c_onsole.log("hide_columns, chart.google.options.colors", hide_columns, Object.assign([], [], chart.google.options.colors));
 		}
-			console.log("hide_columns, chart.google.options.colors", hide_columns, Object.assign([], [], chart.google.options.colors));
 		
 		chart.google.graph.draw(view, chart.google.options);
 		},
 		get_place_name_from_iso: function(country_iso)
 		{
-			let ret = '';
-			if (country_iso === 'world')
+			return get_place_name_from_iso(country_iso);
+			
+		// 	let ret = '';
+		// 	if (country_iso === 'world')
+		// 	{
+		// 	ret = 'World';
+		// 	}
+		// 	else if (country_iso === 'world-without-china')
+		// 	{
+		// 	ret = 'World Without China';
+		// 	}
+		// 	else if (country_iso === 'about')
+		// 	{
+		// 	ret = 'About';
+		// 	}
+		// 	else if (typeof(window.ed.Country_iso_to[country_iso])!=='undefined')
+		// 	{
+		// 	ret = window.ed.Country_iso_to[country_iso].name;
+		// 	}
+		// 	else if (typeof(window.ed.Region_uri_to[country_iso])!=='undefined')
+		// 	{
+		// 	ret = window.ed.Region_uri_to[country_iso].name;
+		// 	}
+		// 	else
+		// 	{
+		// 	console.error('get_place_name_from_iso has no place for ['+country_iso+']');
+		// 	}
+		// return ret;
+		},
+		get_region_type_from_option: function(option_t)
+		{
+		let ret = '';
+			if (option_t.charAt(0)==='T')
 			{
-			ret = 'World';
+			ret += 'Total_';
 			}
-			else if (country_iso === 'world-without-china')
+			else if (option_t.charAt(0)==='D')
 			{
-			ret = 'World Without China';
-			}
-			else if (country_iso === 'about')
-			{
-			ret = 'About';
-			}
-			else if (typeof(window.ed.Country_iso_to[country_iso])!=='undefined')
-			{
-			ret = window.ed.Country_iso_to[country_iso].name;
+			ret += 'Daily_';
 			}
 			else
 			{
-			console.error('get_place_name_from_iso has no place for ['+country_iso+']');
+			console.error("get_region_type_from_option charAt(0) unkown", option_t);
+			}
+			
+			if (option_t.charAt(2)==='a')
+			{
+			ret += 'absolute_';
+			}
+			else if (option_t.charAt(2)==='p')
+			{
+			ret += 'by_population_';
+			}
+			else
+			{
+			console.error("get_region_type_from_option charAt(2) unkown", option_t);
+			}
+			
+			if (option_t.charAt(1)==='C')
+			{
+				ret += 'Confirmed';
+			}
+			else if (option_t.charAt(1)==='A')
+			{
+				ret += 'Active';
+			}
+			else if (option_t.charAt(1)==='R')
+			{
+				ret += 'Recovered';
+			}
+			else if (option_t.charAt(1)==='D')
+			{
+				ret += 'Deaths';
+			}
+			else
+			{
+				console.error("get_region_type_from_option charAt(1) unkown", option_t);
 			}
 		return ret;
 		},
 		get_chart_data_for_source: function(chart_key)
 		{
 			let chart = this.$root.charts[chart_key];
-			console.log("get_chart_data_for_source START chart_key", chart_key, chart.chart_type);
+			 console.log("get_chart_data_for_source START chart_key", chart_key, chart.chart_type);
 			let data_source = chart.data_source;
 			let data_source_type = 'js';
+			// chart.title = chart.title.replace('%P%', this.$root.get_place_name_from_iso(window.ed.place));
+			// chart.full_title = chart.full_title.replace('%P%', this.$root.get_place_name_from_iso(window.ed.place));
 				switch (chart.chart_type)
 				{
 					// case "global_map_plain":
@@ -213,13 +294,29 @@ var my_mixin = {
 					break;
 					case "google_area":
 					case "google_line":
-						chart.full_title = chart.full_title.replace('%P%', this.$root.get_place_name_from_iso(window.ed.place));
 						data_source = chart.data_source = chart.data_source.replace('%p%', window.ed.place.toLowerCase());
 						chart.data_source_var = chart.data_source_var.replace('%p%', window.ed.place.toLowerCase());
-						console.log("get_chart_data_for_source chart.data_source", chart.data_source);
+						// c_onsole.log("get_chart_data_for_source chart.data_source", chart.data_source);
+					break;
+					case "google_line_region":
+						// window.ed.charts[chart_key].full_title = window.ed.charts[chart_key].full_title_template.replace('%T%', get_datetype_name_from_code(window.ed.charts[chart_key].options.t)).replace('%P%', this.$root.get_place_name_from_iso(window.ed.place));
+						replace_title_vars(chart_key);
+						data_source = chart.data_source = chart.data_source_template.replace('%p%', window.ed.place.toLowerCase()).replace('%t%', this.$root.get_region_type_from_option(chart.options.t)).replace(/-/g, '_');
+						chart.data_source_var = chart.data_source_var_template.replace('%p%', window.ed.place.toLowerCase()).replace('%t%', this.$root.get_region_type_from_option(chart.options.t)).replace(/-/g, '_');
+						console.log("get_chart_data_for_source chart.data_source", chart.data_source, chart);
+					break;
+					case "datatable_region":
+						replace_title_vars(chart_key);
+						data_source_type = 'region';
+						// data_source = chart.data_source = chart.data_source_template.replace('%p%', window.ed.place.toLowerCase()).replace(/-/g, '_');
+						let this_place = (typeof(chart.p)!=='undefined')?chart.p:window.ed.place.toLowerCase();
+						console.log("this_place", this_place);
+						chart.data_source_var = chart.data_source_var_template.replace('%p%', this_place).replace(/-/g, '_');
+						// console.log("get_chart_data_for_source chart.data_source", chart.data_source, chart);
+						
 					break;
 					case 'summary_table':
-						console.log("summary_table REPLACE running");
+						// c_onsole.log("summary_table REPLACE running");
 						data_source_type = 'none';
 						// chart.full_title = chart.title;
 						let place_name = this.$root.get_place_name_from_iso(window.ed.place);
@@ -227,8 +324,7 @@ var my_mixin = {
 						{
 							place_name = 'the '+place_name;
 						}
-						chart.title = chart.title.replace('%P%', place_name);
-						chart.title = chart.title.replace('%d%', window.ed.last_day.toLocaleDateString('en-GB'));
+						// chart.title = chart.title.replace('%d%', window.ed.last_day.toLocaleDateString('en-GB'));
 					break;
 					default:
 						console.trace();
@@ -241,31 +337,195 @@ var my_mixin = {
 				{
 					switch (data_source_type)
 					{
+						case "region":
+							if (typeof(window.ed[chart.data_source_var])==='undefined')
+							{
+							window.ed[chart.data_source_var] = {'items': [], 'fields': []};
+								let this_place = (typeof(chart.p)!=='undefined')?chart.p:window.ed.place.toLowerCase();
+								console.log("this_place", this_place);
+							let country_isos = window.ed.Region_uri_to[this_place]["country_isos"];
+							for (let i=0, c=country_isos.length; i<c; i++)
+							{
+								let country = window.ed.Country_iso_to[country_isos[i]];
+								let ifp = chart.pora==='p'?'p':'';
+								let country_obj = {
+									country: {iso: country['iso'], uri: country['uri'], name: country['name']},
+									TC: country['TC'+ifp],
+									TR: country['TR'+ifp],
+									TA: country['TA'+ifp],
+									TD: country['TD'+ifp],
+									DC: country['DC'+ifp],
+									DR: country['DR'+ifp],
+									DA: country['DA'+ifp],
+									DD: country['DD'+ifp],
+									TRR: country['TRR'],
+									TAR: country['TAR'],
+									TMR: country['TMR']
+							};
+								
+								
+								if (chart.pora==='p')
+								{
+									country_obj.population = Math.round(window.ed.Country_iso_to[country['iso']].population / (1000*1000) *100) / 100;
+								}
+							window.ed[chart.data_source_var]['items'].push(country_obj);
+							if (i===0)
+							{
+								fields = [
+									{key: 'country', label: 'Country', is_country: 1, sortable: true, class:'border-right '},
+								];
+								
+								if (chart.pora==='p')
+								{
+									fields.push({key: 'population', label: 'Pop (M)'});
+								}
+								
+								fields.push({key: 'TC', label: 'Confirmed'});
+								fields.push({key: 'TR', label: 'Recovered'});
+								fields.push({key: 'TA', label: 'Active'});
+								fields.push({key: 'TD', label: 'Deaths'});
+								fields.push({key: 'DC', label: 'Confirmed'});
+								fields.push({key: 'DR', label: 'Recovered'});
+								fields.push({key: 'DA', label: 'Active'});
+								fields.push({key: 'DD', label: 'Deaths'});
+								fields.push({key: 'TRR', label: 'Recovery'});
+								fields.push({key: 'TAR', label: 'Activity'});
+								fields.push({key: 'TMR', label: 'Mortality'});
+								
+								for (let j=1, d=fields.length; j<d; j++)
+								{
+										if (typeof(fields[j].class)==='undefined')
+										{
+											fields[j].class = '';
+										}
+										
+									fields[j].class +='numeric ';
+										if (chart.pora==='p')
+										{
+											if ((j===5) || (j===9))
+											{
+												fields[j].class +='border-right ';
+											}
+											if ((0<j) && (j<=5))
+											{
+												fields[j].thClass ='table-total ';
+												fields[j].class +='td-total ';
+											}
+											else if ((5<j) && (j<=9))
+											{
+												fields[j].thClass ='table-daily ';
+												fields[j].class +='td-daily ';
+											}
+											else if ((9<j) && (j<=12))
+											{
+												fields[j].thClass ='table-rates ';
+												fields[j].class +='td-rates ';
+											}
+										}
+										else
+										{
+											if ((j===4) || (j===8))
+											{
+												fields[j].class +='border-right ';
+											}
+											if ((0<j) && (j<=4))
+											{
+												fields[j].thClass ='table-total ';
+												fields[j].class +='td-total ';
+											}
+											else if ((4<j) && (j<=8))
+											{
+												fields[j].thClass ='table-daily ';
+												fields[j].class +='td-daily ';
+											}
+											else if ((8<j) && (j<=11))
+											{
+												fields[j].thClass ='table-rates ';
+												fields[j].class +='td-rates ';
+											}
+										}
+										
+									fields[j].numeric=true;
+									fields[j].sortable=true;
+									fields[j].sortDirection='desc';
+								}
+								window.ed[chart.data_source_var]['fields'] = fields
+							}
+							
+							
+							}
+							console.log("window.ed[chart.data_source_var]", chart_key, window.ed[chart.data_source_var]);
+							temp_data = Object.assign({}, {}, window.ed[chart.data_source_var]);
+							chart.original_data = Object.assign({}, {}, temp_data);
+							chart.temp_filtered_data = Object.assign({}, {}, temp_data);
+							chart.filtered_data = Object.assign({}, {}, temp_data);
+								
+								chart.default_options.r = [...Array(temp_data['items'].length).keys()];
+								if (chart.options.r.length===0)
+								{
+									chart.options.r = [...Array(temp_data['items'].length).keys()];
+								}
+							
+							let number_of_colors_needed = chart.filtered_data.items.length;
+							//let original_colors = window.ed.chart_colors[chart.options.co]
+							let original_colors = window.ed.chart_colors['rainbow'];
+							let generated_colors = chroma.scale(original_colors).colors(number_of_colors_needed);
+							chart.column_colors = generated_colors;
+							console.log("chart.filtered_data", chart.filtered_data);
+							}
+						break;
 						case "js":
-						console.log("BEFORE js data source loading starts", chart_key);
+						// c_onsole.log("BEFORE js data source loading starts", chart_key);
 						if (typeof(window.ed[chart.data_source_var])==='undefined')
 						{
-							console.log("data source loading needed", chart_key, data_source, chart.data_source_var);
-							load_script(window.ed.data_folder+data_source, function(){
+							// c_onsole.log("data source loading needed", chart_key, data_source, chart.data_source_var);
+							load_script(window.ed.data_folder+data_source+'?v='+window.ed.data_version, function(){
+								console.warn('CHART LOAD START', chart_key);
 								console.log("js data source loaded", chart_key, chart.data_source_var, window.ed.data_folder+data_source, window.ed[chart.data_source_var]);
-								chart.original_data = Object.assign([], [], window.ed[chart.data_source_var]);
-								chart.filtered_data = Object.assign([], [], window.ed[chart.data_source_var]);
+								let temp_data = Object.assign([], [], window.ed[chart.data_source_var]);
+								window.app.$root.create_range_date_labels(chart_key, temp_data);
+								for (let i=1, c=temp_data.length; i<c; i++)
+								{
+									temp_data[i][0] = window.app.$root.to_locale_string(temp_data[i][0]);
+								}
+								if (chart.chart_type==='google_line_region')
+								{
+									for (let i=1, c=temp_data.length; i<c; i++)
+									{
+										if (typeof(window.ed.Country_iso_to[temp_data[0][i]])!=='undefined')
+										{
+										temp_data[0][i] = window.ed.Country_iso_to[temp_data[0][i]].name;
+										}
+									}
+									
+									chart.default_options.c = [...Array(temp_data[0].length).keys()];
+									if (chart.options.c.length===0)
+									{
+										chart.options.c = [...Array(temp_data[0].length).keys()];
+									}
+								}
+								chart.original_data = Object.assign([], [], temp_data);
+								chart.temp_filtered_data = Object.assign([], [], temp_data);
+								chart.filtered_data = Object.assign([], [], temp_data);
 								window.app.$root.refilter_chart_data_by_columns(chart_key);
+								window.app.$root.refilter_chart_data_by_start_and_end_dates(chart_key);
+								console.warn('CHART LOAD END', chart_key);
 							});
 						}
 						else
 						{
-							console.log("data source loading NOT needed", chart_key);
+							// c_onsole.log("data source loading NOT needed", chart_key);
 							chart.original_data = Object.assign([], [], window.ed[chart.data_source_var]);
 							chart.filtered_data = Object.assign([], [], window.ed[chart.data_source_var]);
 							this.$root.refilter_chart_data_by_columns(chart_key);
+							this.$root.refilter_chart_data_by_start_and_end_dates(chart_key);
 						}
-						console.log("AFTER js data source  loading starts");
+						// c_onsole.log("AFTER js data source  loading starts");
 						break;
 						
 						case 'csv':
-						console.log("BEFORE csv loading");
-						let data_source_url = window.ed.data_folder+data_source+".csv";
+						// c_onsole.log("BEFORE csv loading");
+						let data_source_url = window.ed.data_folder+data_source+".csv"+'?v='+window.ed.data_version;
 						this.$root.data_from_source[data_source] = this.$root.get_data_from_ajax_csv(data_source_url);
 						chart.original_data =  this.$root.data_from_source[data_source]['original_data'];
 						chart.min_value =  this.$root.data_from_source[data_source]['min_value'];
@@ -291,7 +551,7 @@ var my_mixin = {
 							}
 							
 							//c_onsole.log("chart.original_data", chart.options.c, chart.original_data, chart.min_value, chart.second_min_value, chart.used_min_value, chart.max_value, chart.second_max_value, chart.used_max_value);
-							this.$root.refilter_chart_data_by_columns(chart_key)
+							this.$root.refilter_chart_data_by_columns(chart_key);
 						break;
 						
 					}
@@ -330,7 +590,7 @@ var my_mixin = {
 			// 	dataType: "csv",
 			// 	async: false
 			// }).responseText);
-			// console.log("get_iso_countries_from_ajax_csv arr", arr);
+			// c_onsole.log("get_iso_countries_from_ajax_csv arr", arr);
 			// let arr = window.ed.Country_iso_to;
 			// let arr_header = arr[0];
 			// let arr_content = arr.slice(1);
@@ -345,7 +605,7 @@ var my_mixin = {
 			// 		fullobj[arr_content[ri][0].toUpperCase()] = row_obj;
 			// 	}
 			let fullobj = window.ed.Country_iso_to;
-			console.log("get_iso_countries_from_ajax_csv fullobj", fullobj);
+			// c_onsole.log("get_iso_countries_from_ajax_csv fullobj", fullobj);
 			return fullobj;
 		},
 		get_data_from_ajax_csv: function(url)
@@ -355,6 +615,7 @@ var my_mixin = {
 				dataType: "csv",
 				async: false
 			}).responseText);
+			console.log("get_data_from_ajax_csv responseText", arr);
 			let min_value = null;
 			let max_value = null;
 			let second_min_value = null;
@@ -400,6 +661,7 @@ var my_mixin = {
 		},
 		redraw: function (chart_key)
 		{
+			console.log("redraw START", chart_key);
 			let chart = this.$root.charts[chart_key];
 			switch (chart.chart_type)
 			{
@@ -427,12 +689,25 @@ var my_mixin = {
 					window.app.$root.draw_google_line(chart_key);
 				});
 			break;
+			case "google_line_region":
+				console.log("redraw chart.chart_type", chart_key, chart.chart_type);
+				google.charts.setOnLoadCallback(function(){
+					// c_onsole.log("google.charts.setOnLoadCallback START", chart_key);
+					window.app.$root.draw_google_line_region(chart_key);
+					// c_onsole.log("google.charts.setOnLoadCallback END", chart_key);
+				});
+			break;
+			
+			case "datatable_region":
+				// nothing to do
+			break;
 			
 			default:
 				console.trace();
 				console.error("chart_type doesnt exist ["+chart.chart_type+"]");
 			break;
 			}
+			console.log("redraw END", chart_key)
 			
 			// query = JSON.parse(JSON.stringify(this.$route.query));
 			// query.usa=this.plain_data[2][1];
@@ -474,7 +749,7 @@ var my_mixin = {
 				}
 			ret.push(row);
 			}
-		console.log('add_annotation', chart_key, every_nth_row, ret);
+		// c_onsole.log('add_annotation', chart_key, every_nth_row, ret);
 		return ret;
 		},
 		draw_google_area: function(chart_key)
@@ -482,15 +757,42 @@ var my_mixin = {
 			let chart = this.$root.charts[chart_key];
 			let data = chart.filtered_data;
 			//data = this.$root.add_annotation(chart_key, data,7, [4]);
-			console.log("draw_google_area chart_key data", chart_key, data);
+			// c_onsole.log("draw_google_area chart_key data", chart_key, data);
 			var datatable = google.visualization.arrayToDataTable(data);
 			//let container = document.getElementById('google_chart_'+chart_key);
+			
+			let log_scale = null;
+			if ((typeof(chart.log_scale_custom)!=='undefined') && chart.log_scale_custom)
+			{
+				if ((typeof(chart.options.l)==='undefined'))
+				{
+					log_scale = null;
+				}
+				else
+				{
+					switch(chart.options.l)
+					{
+					case null:
+					case '':
+					case 'n':
+						log_scale = null;
+						break;
+					case 'l':
+						log_scale = 'log';
+						break;
+					case 'm':
+						log_scale = 'mirrorLog';
+						break;
+					}
+				}
+			}
 			
 			var options = {
 				title: '',
 				titlePosition: 'none',
 				isStacked: (typeof(chart.is_stacked)==='undefined')?false:chart.is_stacked,
-				legend: {position: 'top', maxLines: 3},
+				legend: {position: 'none'},
+				//legend: {position: 'top', maxLines: 3},
 				hAxis: {
 					titleTextStyle: {color: '#333'},
 					// gridlines:{color: '#f0f0f0', interval: [7]},
@@ -500,6 +802,7 @@ var my_mixin = {
 					titleTextStyle: {color: '#333'},
 					gridlines:{color: '#f0f0f0'},
 					minorGridlines:{color: '#f6f6f6'},
+					scaleType: log_scale
 				},
 				// vAxis: {
 				// 	// minValue: 0,
@@ -512,9 +815,10 @@ var my_mixin = {
 				areaOpacity: 0.7,
 				colors: chart.column_colors,
 				seriesType: 'area',
-				//series: {3: {type: 'line'}},
+				//series: {11: {lineDashStyle: [4, 4]}},
 				//width: container.offsetWidth,
-				chartArea: {right: 0, width: '90%', top: '15%', height: '75%', },
+				//chartArea: {right: 0, width: '90%', top: '15%', height: '75%', },
+				chartArea: {right: '0%', width: window.ed.size_settings.chart_width[window.ed.screen_size]+'%', top: '13%', height: '75%', },
 				curveType: (typeof(chart.curve_type)==='undefined')?'none':chart.curve_type,
 				tooltip: {
 					isHtml: true,
@@ -537,7 +841,7 @@ var my_mixin = {
 					},
 				}
 			};
-			console.log("options", options);
+			// c_onsole.log("options", options);
 			
 			//var graph = new google.visualization.ComboChart(container);
 			
@@ -556,7 +860,7 @@ var my_mixin = {
 			//graph.draw(view, options);
 			wrapper.draw();
 			//wrapper.getChart().setSelection([{row:1,column:1}]);
-			console.log("wrapper.getOptions()", wrapper.getOptions());
+			// c_onsole.log("wrapper.getOptions()", wrapper.getOptions());
 			
 			
 			chart.google = {datatable: datatable, wrapper: wrapper, options: options};
@@ -565,7 +869,7 @@ var my_mixin = {
 		{
 			let chart = this.$root.charts[chart_key];
 			let data = chart.filtered_data;
-			console.log("draw_google_area chart_key data", chart_key, data);
+			// c_onsole.log("draw_google_area chart_key data", chart_key, data);
 			var datatable = google.visualization.arrayToDataTable(data);
 			
 			//$container = $();
@@ -594,7 +898,7 @@ var my_mixin = {
 				chartArea: {right: 0, width: '90%', top: '15%', height: '75%', },
 				curveType: 'function',
 			};
-			console.log("options", options);
+			// c_onsole.log("options", options);
 			
 			//var graph = new google.visualization.AreaChart(document.getElementById('google_chart_'+chart_key));
 			var graph = new google.visualization.ComboChart(container);
@@ -609,30 +913,63 @@ var my_mixin = {
 			let chart = this.$root.charts[chart_key];
 			let data = chart.filtered_data;
 			// data = this.$root.add_annotation(chart_key, data,7, [4]);
-			console.log("draw_google_line data", data, chart.original_data);
+			console.log("draw_google_line data", chart_key, data, chart.filtered_data);
 			var datatable = google.visualization.arrayToDataTable(data);
 			
 			//$container = $();
 			let container_id = 'google_chart_'+chart_key;
 			let container = document.getElementById(container_id);
-			console.log("container", container_id, container.length, container);
+			// c_onsole.log("container", container_id, container.length, container);
+			let log_scale = null;
+			if ((typeof(chart.log_scale_custom)!=='undefined') && chart.log_scale_custom)
+			{
+				if ((typeof(chart.options.l)==='undefined'))
+				{
+					log_scale = null;
+				}
+				else
+				{
+					switch(chart.options.l)
+					{
+					case null:
+					case '':
+					case 'n':
+						log_scale = null;
+					break;
+					case 'l':
+						log_scale = 'log';
+					break;
+					case 'm':
+						log_scale = 'mirrorLog';
+					break;
+					}
+				}
+			}
 			var options = {
 				title: '',
 				titlePosition: 'none',
 				//isStacked: true,
-				legend: {position: 'top', maxLines: 3},
+				legend: {position: 'none'},
 				hAxis: {titleTextStyle: {color: '#333'}},
-				vAxis: {titleTextStyle: {color: '#333'}},
+				vAxis: {
+					titleTextStyle: {color: '#333'},
+					gridlines:{color: '#f0f0f0'},
+					minorGridlines:{color: '#f6f6f6'},
+					scaleType: log_scale,
+				},
 				// selectionMode: 'multiple',
 				// tooltip: {trigger: 'selection'},
 				// //aggregationTarget: 'category',
 				// aggregationTarget: 'series',
 				//areaOpacity: 0.7,
 				colors: chart.column_colors,
-				seriesType: 'line',
-				//series: {3: {type: 'line'}},
+				seriesType: 'lines',
+				series: {
+					// 0: {type: 'bars'},
+					// 3: {type: 'area'}
+					},
 				//width: container.offsetWidth,
-				chartArea: {right: '0%', width: '90%', top: '15%', height: '75%', },
+				chartArea: {right: '0%', width: window.ed.size_settings.chart_width[window.ed.screen_size]+'%', top: '13%', height: '75%', },
 				curveType: (typeof(chart.curve_type)==='undefined')?'none':chart.curve_type,
 				tooltip: {
 					isHtml: true,
@@ -653,9 +990,164 @@ var my_mixin = {
 						//color: dsdsds,
 						opacity: 0.1,
 					},
-				}
+				},
+				bar: {groupWidth: '95%'},
 			};
-			console.log("options", options);
+			
+			
+			if (typeof(chart.options.f)!=='undefined')
+			{
+				switch (chart.options.f)
+				{
+				case 'l':
+				default:
+					options.seriesType = 'line';
+					break;
+				
+				case 'a':
+					options.seriesType = 'area';
+					break;
+				
+				case 'b':
+					options.seriesType = 'bars';
+					break;
+					
+				}
+			}
+			// c_onsole.log("options", options);
+			
+			//var graph = new google.visualization.AreaChart(document.getElementById('google_chart_'+chart_key));
+			var graph = new google.visualization.ComboChart(container);
+			graph.draw(datatable, options);
+			chart.google = {datatable: datatable, graph: graph, options: options, container: container};
+			this.reload_google_chart_data(chart_key, false);
+		},
+		draw_google_line_region: function(chart_key)
+		{
+			let chart = this.$root.charts[chart_key];
+			let data = chart.filtered_data;
+			// for (let i=0, c=data.length; i<c; i++)
+			// {
+			// 	data[i][0] = new Date(data[i][0]);
+			// }
+			// data = this.$root.add_annotation(chart_key, data,7, [4]);
+			// c_onsole.log("draw_google_line_region data", chart_key, data, chart.filtered_data);
+			var datatable = google.visualization.arrayToDataTable(data);
+			
+			//$container = $();
+			let container_id = 'google_chart_'+chart_key;
+			let container = document.getElementById(container_id);
+			// c_onsole.log("container", container_id, container.length, container);
+			let log_scale = null;
+			if (typeof(chart.options.l)!=='undefined')
+			{
+					switch(chart.options.l)
+					{
+					case null:
+					case '':
+					case 'n':
+						log_scale = null;
+					break;
+					case 'l':
+						log_scale = 'log';
+					break;
+					case 'm':
+						log_scale = 'mirrorLog';
+					break;
+					}
+			}
+			console.log("draw_google_line_region log_scale", chart_key, chart.options.l, log_scale);
+			
+			let generated_series = {};
+			// TODO put this back, but have to count the hidden columns on every redraw
+			// generated_series[chart.filtered_data[0].length-2] = {lineDashStyle: [4, 4]}
+			var options = {
+				title: '',
+				titlePosition: 'none',
+				//isStacked: true,
+				legend: {position: 'none'},
+				hAxis: {titleTextStyle: {color: '#333'}},
+				vAxis: {
+					titleTextStyle: {color: '#333'},
+					gridlines:{color: '#f0f0f0'},
+					minorGridlines:{color: '#f6f6f6'},
+					scaleType: log_scale,
+				},
+				seriesType: 'line',
+				// trendlines: {
+				// 	0: {
+				// 		type: 'exponential'
+				// 	},
+				// 	1: {
+				// 		type: 'exponential'
+				// 	},
+				// 	2: {
+				// 		type: 'polynomial',
+				// 		degree: 3
+				// 	},
+				// 	3: {
+				// 		type: 'polynomial',
+				// 		degree: 4
+				// 	},
+				// },
+				series: generated_series,
+				//width: container.offsetWidth,
+				chartArea: {right: '0%', width: window.ed.size_settings.chart_width[window.ed.screen_size]+'%', top: '13%', height: '75%', },
+				curveType: (typeof(chart.curve_type)==='undefined')?'none':chart.curve_type,
+				tooltip: {
+					isHtml: true,
+					trigger: 'both'
+				},
+				selectionMode: 'multiple',
+				aggregationTarget: 'none',
+				crosshair:{
+					trigger: 'both', //selection, both, focus
+					orientation: 'vertical',
+					color: '#000000',
+					opacity: 0.1,
+					focused:{
+						//color: dsdsds,
+						opacity: 0.25,
+					},
+					selected:{
+						//color: dsdsds,
+						opacity: 0.1,
+					},
+				},
+				bar: {groupWidth: '95%'},
+			};
+			
+			if (typeof(chart.options.f)!=='undefined')
+			{
+				switch (chart.options.f)
+				{
+				case 'l':
+				default:
+				options.seriesType = 'line';
+				break;
+				
+				case 'a':
+				options.seriesType = 'area';
+				break;
+				
+				case 'b':
+				options.seriesType = 'bars';
+				break;
+				
+				}
+			}
+			if (1 || typeof(chart.options.co)!=='undefined')
+			{
+				let number_of_colors_needed = chart.filtered_data[0].length - 2;
+				//let original_colors = window.ed.chart_colors[chart.options.co]
+				let original_colors = window.ed.chart_colors['rainbow']
+				let generated_colors = chroma.scale(original_colors).colors(number_of_colors_needed);
+				generated_colors.push("#999999");
+				chart.column_colors = generated_colors;
+				// c_onsole.log("generated_colors", number_of_colors_needed, original_colors, generated_colors);
+				options['colors'] = generated_colors;
+			}
+			// c_onsole.log("options", options);
 			
 			//var graph = new google.visualization.AreaChart(document.getElementById('google_chart_'+chart_key));
 			var graph = new google.visualization.ComboChart(container);
@@ -722,7 +1214,7 @@ var my_mixin = {
 				var dataset = anychart.data.set(data);
 				
 				var map = anychart.map();
-				console.log("anychart.maps['world']", anychart.maps['world']);
+				// c_onsole.log("anychart.maps['world']", anychart.maps['world']);
 				map.geoData(anychart.maps['world']); // TODO: from map_type
 				
 				// stroke the undefined regions
@@ -831,7 +1323,7 @@ var my_mixin = {
 			{
 				// c_onsole.log("before chart.anychart.dataset.data");
 				chart.anychart.dataset.data(chart.filtered_data);
-				chart.anychart.map.title('<span class="graph_title">'+this.$root.charts[chart_key].options.c+' on '+this.$root.charts[chart_key].local_d+'</span>');;
+				chart.anychart.map.title('<span class="graph_title">'+this.$root.charts[chart_key].options.c+' on '+this.$root.charts[chart_key].local_d+'</span>');
 				this.$root.anychart_chropleth_set_scale(chart_key);
 			}
 		},
@@ -842,7 +1334,7 @@ var my_mixin = {
 			{
 				//var data = chart.filtered_data;
 				
-				console.log('area chart.filtered_data;', chart.filtered_data);
+				// c_onsole.log('area chart.filtered_data;', chart.filtered_data);
 				
 				let data_header = chart.filtered_data[0];
 				data_header.shift();
@@ -878,7 +1370,7 @@ var my_mixin = {
 				{
 					if (i===chart.filtered_data.length-1)
 					{
-						console.log("creating data_series_list, i=", i, chart.filtered_data[i]);
+						// c_onsole.log("creating data_series_list, i=", i, chart.filtered_data[i]);
 					}
 					data_series_list[i-1] = data.mapAs({x: 0, value: i});
 					area_series_list[i-1] = graph.area(data_series_list[i-1]);
@@ -1106,9 +1598,113 @@ var my_mixin = {
 			// get the default otherwise
 			return this.sourceColor;
 		},
+		create_range_date_labels: function(chart_key, original_data)
+		{
+			// c_onsole.log('create_range_date_labels START', chart_key, original_data, original_data[1][0]);
+			let chart = this.$root.charts[chart_key];
+			let moving_date = new Date(original_data[1][0]);
+			chart.range_date_list = [];
+			chart.range_date_labels = {};
+			let moving_date_string = original_data[1][0];
+			let index = 0;
+			// while (moving_date_string < original_data[original_data.length - 1][0])
+			while (moving_date_string < window.ed.last_day_iso)
+			{
+				// c_onsole.log('moving_date_string <= window.ed.last_day_iso', moving_date_string, chart.original_data[chart.original_data.length - 1][0]);
+				moving_date_string = moving_date.toISOString().slice(0,10);
+				chart.range_date_list.push(moving_date_string);
+				if (index % this.$root.show_labels_on_every_nth_day[window.ed.screen_size] === 0)
+				{
+					chart.range_date_labels[moving_date_string] = moving_date.toLocaleDateString('en-GB', {});
+				}
+				else
+				{
+					chart.range_date_labels[moving_date_string] = '';
+				}
+				moving_date.setDate(moving_date.getDate()+1);
+				index ++;
+			}
+			moving_date.setDate(moving_date.getDate()-1);
+			moving_date_string = moving_date.toISOString().slice(0,10);
+			chart.range_date_labels[moving_date_string] = moving_date.toLocaleDateString('en-GB', {}); // the last one
+			// c_onsole.log('create_range_date_labels END', chart_key, chart.range_date_list, chart.range_date_labels, this.$root.charts[chart_key].range_date_labels);
+		},
+		refilter_chart_data_by_start_and_end_dates: function(chart_key)
+		{
+			console.log('refilter_chart_data_by_start_and_end_dates', chart_key);
+			// TODO: cache this, but beware: the original_data can change and we have to make the cache obsolate
+			let chart = this.$root.charts[chart_key];
+			let ret = '';
+				switch (chart.chart_type)
+				{
+				case "google_area":
+				case "google_line":
+				case "google_line_region":
+					if (typeof(chart.options.dr)!=='undefined')
+					{
+						if ((typeof(chart.range_date_list)==='undefined') || (typeof(chart.range_date_labels)==='undefined'))
+						{
+							// this.$root.create_range_date_labels(chart_key);
+						}
+						let filtered_data = Object.assign([], [], chart.temp_filtered_data);
+						let iso_date_start = chart.options.dr[0];
+						let date_start = new Date(iso_date_start);
+						let locale_date_start = date_start.toLocaleDateString('en-GB', {});
+						let iso_date_end = chart.options.dr[1];
+						let date_end = new Date(iso_date_end);
+						let locale_date_end = date_end.toLocaleDateString('en-GB', {});
+						let date_start_index = 1; // header is line 0
+						let date_end_index = filtered_data.length;
+						console.log('refilter_chart_data_by_start_and_end_dates START2', chart_key, iso_date_start, iso_date_end);
+							for (let i=1, c=filtered_data.length; i<c; i++)
+							{
+								// c_onsole.log('refilter_chart_data_by_start_and_end_dates search, locale_date_start, locale_date_end, filtered_data[i][0]', chart_key, locale_date_start, locale_date_end, filtered_data[i][0]);
+								if (locale_date_start === filtered_data[i][0])
+								{
+								console.log('refilter_chart_data_by_start_and_end_dates found locale_date_start', chart_key, locale_date_start, date_start_index);
+								date_start_index = i;
+								}
+								if (locale_date_end === filtered_data[i][0])
+								{
+								console.log('refilter_chart_data_by_start_and_end_dates found locale_date_end', chart_key, locale_date_end, date_end_index);
+								date_end_index = i;
+								}
+							}
+							if (date_end_index < date_start_index + 5)
+							{
+							console.log('refilter_chart_data_by_start_and_end_dates reset iso_date_end because too big', chart_key, date_end_index, date_start_index);
+							date_end_index = filtered_data.length;
+							}
+							
+						if ((date_end_index !== filtered_data.length) && (date_end_index>1)) // if equal, we don't need to remove anything from the end
+						{
+						console.log('refilter_chart_data_by_start_and_end_dates DO date_end_index', chart_key, date_end_index);
+						filtered_data.splice(date_end_index+1);
+						}
+						
+						if (date_start_index>1) // if date_start is 1, we don't need to remove anything from the start
+						{
+						console.log('refilter_chart_data_by_start_and_end_dates DO date_start_index', chart_key, date_start_index);
+						filtered_data.splice(1, date_start_index);
+						}
+						console.log('refilter_chart_data_by_start_and_end_dates GO', chart_key, filtered_data);
+					chart.filtered_data = Object.assign([], [], filtered_data);
+					}
+					// chart.filtered_data = Object.assign([], [], ret);
+				break;
+				
+				default:
+					console.trace();
+					console.error("chart_type doesnt exist ["+chart.chart_type+"]");
+				break;
+				}
+			
+			console.log('chart.filtered_data', chart.filtered_data);
+			this.$root.redraw(chart_key);
+		},
 		refilter_chart_data_by_columns: function(chart_key)
 		{
-			console.log('refilter_chart_data_by_columns', chart_key);
+			console.log('refilter_chart_data_by_columns START', chart_key);
 			// TODO: cache this, but beware: the original_data can change and we have to make the cache obsolate
 			let chart = this.$root.charts[chart_key];
 			let column_labels = [];
@@ -1149,6 +1745,7 @@ var my_mixin = {
 				
 				case "google_area":
 				case "google_line":
+				case "google_line_region":
 					if (typeof(chart.filter_columns_by_label)!=='undefined')
 					{
 						
@@ -1168,6 +1765,11 @@ var my_mixin = {
 						console.log("remove_first_dates AFTER", chart.remove_first_dates, ret);
 					}
 					chart.filtered_data = Object.assign([], [], ret);
+					chart.temp_filtered_data = Object.assign([], [], ret);
+					console.log("refilter_chart_data_by_columns, chart.temp_filtered_data", chart.temp_filtered_data);
+				break;
+				
+				case "datatable_region":
 				break;
 				
 				default:
@@ -1176,7 +1778,7 @@ var my_mixin = {
 				break;
 				}
 			
-			console.log('chart.filtered_data', chart.filtered_data);
+			console.log('refilter_chart_data_by_columns END', chart_key, 'chart.filtered_data', chart.filtered_data);
 			this.$root.redraw(chart_key);
 		},
 		filter_data_by_column_labels: function(data, column_labels, replace_labels='', use_first_column=true)
@@ -1210,7 +1812,7 @@ var my_mixin = {
 			{
 				if (ri < 2)
 				{
-				console.log("data[ri], ri", ri, data[ri]);
+				// c_onsole.log("data[ri], ri", ri, data[ri]);
 				}
 				let row = [];
 				for (let ci=0, cl=data[ri].length; ci<cl; ci++)
@@ -1218,10 +1820,10 @@ var my_mixin = {
 					if ((ci===0)&&(use_first_column))
 					{
 						let this_column_number = 0;
-						row[this_column_number] = this.$root.to_locale_string(data[ri][ci]);
+						row[this_column_number] = data[ri][ci]; //this.$root.to_locale_string(data[ri][ci]);
 						if (ri < 2)
 						{
-							console.log("data[ri], ri, ci=0", ri, ci, data[ri][ci]);
+							// c_onsole.log("data[ri], ri, ci=0", ri, ci, data[ri][ci]);
 						}
 					}
 					else if (column_indices.includes(ci))
@@ -1230,7 +1832,7 @@ var my_mixin = {
 						row[this_column_number] = data[ri][ci];
 						if (ri < 2)
 						{
-							console.log("data[ri], ri, ci", ri, ci, data[ri][ci]);
+							// c_onsole.log("data[ri], ri, ci", ri, ci, data[ri][ci]);
 						}
 						//row.push(data[ri][ci]);
 						// if (!has_nonzero && data[ri][ci]!=0)
@@ -1241,7 +1843,7 @@ var my_mixin = {
 				}
 				if (ri < 2)
 				{
-					console.log("row, ri", ri, row);
+					// c_onsole.log("row, ri", ri, row);
 				}
 				arr.push(row);
 			}
@@ -1256,12 +1858,12 @@ var my_mixin = {
 					{
 						if ((first_nonzero_row === null) && (arr[ri][ci] != 0))
 						{
-							console.log("first_nonzero_row FOUND", first_nonzero_row, arr[ri][ci], arr[ri])
+							// c_onsole.log("first_nonzero_row FOUND", first_nonzero_row, arr[ri][ci], arr[ri])
 							first_nonzero_row = ri;
 						}
 					}
 				}
-				console.log("first_nonzero_row", first_nonzero_row);
+				// c_onsole.log("first_nonzero_row", first_nonzero_row);
 				if (first_nonzero_row ===  null)
 				{
 				ret = arr;
@@ -1407,7 +2009,7 @@ var my_mixin = {
 			setTimeout(function(){
 				chart.image_generating = 2;
 				let options = {}; // {'width': image_element.offsetWidth, 'height': image_element.offsetHeight};
-				console.log("html2canvas options", options);
+				console.log("html2canvas options 1540", options);
 				let canvas_container_element_id = 'any_chart_'+chart_key+'_canvas_container';
 				let canvas_container = document.getElementById(canvas_container_element_id);
 				let current_scroll_top = document.documentElement.scrollTop;
@@ -1438,6 +2040,9 @@ var my_mixin = {
 				case "summary_table":
 					this.$root.save_as_image_summary(chart_key);
 				break;
+				case "datatable_region":
+					this.$root.save_as_image_datatable(chart_key);
+				break;
 				default:
 					this.$root.save_as_image_google(chart_key);
 				break;
@@ -1448,18 +2053,50 @@ var my_mixin = {
 			console.log("save_as_image");
 			let chart = window.app.charts[chart_key];
 			chart.image_generating = 1;
-			let outer_element_id = 'chart_container_'+chart_key;
+			let outer_element_id = 'page_chart_container_'+chart_key;
 			let outer_element = document.getElementById(outer_element_id);
 			setTimeout(function(){
 				chart.image_generating = 2;
 				let options = {'scale': 1}; // scale is useless as we already have the image above, we need a bigger chart to create a bigger image first
-				console.log("html2canvas options", options);
+				console.log("html2canvas options 1568", options);
 				let canvas_container_element_id = 'chart_'+chart_key+'_canvas_container';
 				let canvas_container = document.getElementById(canvas_container_element_id);
 				let current_scroll_top = document.documentElement.scrollTop;
 				let current_scroll_left = document.documentElement.scrollLeft;
 				window.scrollTo(0,0);
 				// html2canvas(image_container_outer_element, options).then(canvas => {
+				console.log('html2canvas', outer_element, outer_element_id);
+				html2canvas(outer_element, options).then(canvas => {
+					// console.log("image_container_outer_element, canvas", image_container_outer_element, canvas);
+					canvas.id = 'google_chart_'+chart_key+'_canvas';
+					canvas_container.innerHTML = '';
+					canvas_container.appendChild(canvas);
+					canvas.toBlob(function(blob) {
+						saveAs(blob, chart.full_filename+"_saved-on-"+window.app.get_iso_filename_datetime()+".png");
+						chart.image_generating = 0;
+					});
+				});
+				window.scrollTo(current_scroll_left, current_scroll_top);
+			},10);
+		},
+		save_as_image_datatable: function(chart_key)
+		{
+			console.log("save_as_image");
+			let chart = window.app.charts[chart_key];
+			chart.image_generating = 1;
+			let outer_element_id = 'datatable_'+chart_key+'_container';
+			let outer_element = document.getElementById(outer_element_id);
+			setTimeout(function(){
+				chart.image_generating = 2;
+				let options = {'scale': 1}; // scale is useless as we already have the image above, we need a bigger chart to create a bigger image first
+				console.log("html2canvas options 1955", options);
+				let canvas_container_element_id = 'chart_'+chart_key+'_canvas_container';
+				let canvas_container = document.getElementById(canvas_container_element_id);
+				let current_scroll_top = document.documentElement.scrollTop;
+				let current_scroll_left = document.documentElement.scrollLeft;
+				window.scrollTo(0,0);
+				// html2canvas(image_container_outer_element, options).then(canvas => {
+				console.log('html2canvas', outer_element, outer_element_id);
 				html2canvas(outer_element, options).then(canvas => {
 					// console.log("image_container_outer_element, canvas", image_container_outer_element, canvas);
 					canvas.id = 'google_chart_'+chart_key+'_canvas';
@@ -1499,6 +2136,7 @@ var my_mixin = {
 					image_uri = chart.google.wrapper.getChart().getImageURI();
 				break;
 			case "google_line":
+			case "google_line_region":
 					image_uri = chart.google.graph.getImageURI(); // TODO: remove these, we are not using getImageURI
 				break;
 			}
@@ -1508,7 +2146,7 @@ var my_mixin = {
 			setTimeout(function(){
 				chart.image_generating = 2;
 				let options = {'scale': 1}; // scale is useless as we already have the image above, we need a bigger chart to create a bigger image first
-				console.log("html2canvas options", options);
+				console.log("html2canvas options 1641", options);
 				let canvas_container_element_id = 'chart_'+chart_key+'_canvas_container';
 				let canvas_container = document.getElementById(canvas_container_element_id);
 				let current_scroll_top = document.documentElement.scrollTop;
@@ -1558,6 +2196,10 @@ var my_mixin = {
 			this.$root.charts[chart_key].show_embed = !this.$root.charts[chart_key].show_embed;
 			this.$root.recalculate_embed_url(chart_key)
 		},
+		// TODO:
+		/*
+		Szóval a date range változáskor jelenleg a filtered datából indulunk ki. De mivel a filtered_data eleve dátum alapján vágott, az original_data pedig még column alapján sem szűrt, ezért valójában nincs miből kiindulnunk. Szóval kéne csinálni egy temp_filtered_datát amikor a filtered_datát előállítjuk, és most abból indulni ki.
+		*/
 		/*date_slider_changed: function(chart_key)
 		{
 			_.debounce(() => {
@@ -1573,6 +2215,32 @@ var my_mixin = {
 		page_title: function()
 		{
 			return this.get_place_name_from_iso(window.ed.place);
+		},
+		chart_link: function()
+		{
+			let chart_options_to_url = {'p': window.ed.place};
+			if (
+				(typeof(this.$root.charts[this.chart_key])!=='undefined') &&
+				(typeof(this.$root.charts[this.chart_key].options)!=='undefined')  &&
+				(typeof(this.$route.query[this.chart_key])!=='undefined')
+			)
+			{
+				// let chart_options_from_url = {};
+				console.log("this.$route.query[this.chart_key]", this.chart_key, this.$route.query[this.chart_key]);
+				let chart_options_from_url = JSON.parse(this.$route.query[this.chart_key]);
+				chart_options_to_url = Object.assign({}, chart_options_to_url, chart_options_from_url);
+			}
+			let this_place = '';
+			if (window.ed.place_type==='country')
+			{
+				this_place = window.ed.Country_iso_to[window.ed.place]['uri'];
+			}
+			else if (window.ed.place_type==='region')
+			{
+				this_place = window.ed.place;
+			}
+			let ret = '/'+this_place+'/chart/?'+this.chart_key+'='+JSON.stringify(chart_options_to_url);
+			return ret;
 		}
 	}
 };

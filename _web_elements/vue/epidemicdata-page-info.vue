@@ -12,12 +12,12 @@
                 <span v-html="$root.get_place_name_from_iso(window.ed.place)"></span> is part of:
                 <span class="regions_of_countries">
                                     <template v-for="(continent, continent_index) in window.ed.continents">
-                                        <template v-if="(typeof(continent['countries'])!=='undefined') && (continent['countries'].indexOf(window.ed.place)!==-1)">
+                                        <template v-if="(typeof(continent['country_isos'])!=='undefined') && (continent['country_isos'].indexOf(window.ed.place)!==-1)">
                                             <span>, </span>
                                             <a :href="'/'+continent['uri']" v-html="continent['name']"></a>
                                         </template>
                                         <template v-for="(region, region_index) in continent['regions']">
-                                            <template v-if="(typeof(region['countries'])!=='undefined') && (region['countries'].indexOf(window.ed.place)!==-1)">
+                                            <template v-if="(typeof(region['country_isos'])!=='undefined') && (region['country_isos'].indexOf(window.ed.place)!==-1)">
                                                 <span>, </span>
                                                 <a :href="'/'+region['uri']" v-html="region['name']"></a>
                                             </template>
@@ -39,7 +39,7 @@
 
                             as regions
 
-                            <template v-for="country_code in continent['countries']">
+                            <template v-for="country_code in continent['country_isos']">
                             <span>, </span>
                                 <template v-if="typeof(window.ed.Country_iso_to[country_code])!=='undefined'">
                                 <a :href="'/'+window.ed.Country_iso_to[country_code]['uri']" v-html="window.ed.Country_iso_to[country_code]['name']"></a>
@@ -51,7 +51,7 @@
                         </template>
                         <template v-for="(region, region_index) in continent['regions']">
                             <template v-if="region['uri']===window.ed.place">
-                                <template v-for="country_code in region['countries']">
+                                <template v-for="country_code in region['country_isos']">
                                 <span>, </span>
                                     <template v-if="typeof(window.ed.Country_iso_to[country_code])!=='undefined'">
                                     <a :href="'/'+window.ed.Country_iso_to[country_code]['uri']" v-html="window.ed.Country_iso_to[country_code]['name']"></a>

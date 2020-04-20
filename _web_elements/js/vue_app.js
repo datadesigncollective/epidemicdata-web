@@ -16,8 +16,10 @@ window.app = new Vue({
 	el: '#app',
 	data: {
 		name: '',
+		show_mobile_menu: 0,
 		date_list: [],
 		date_labels: {},
+		show_labels_on_every_nth_day: {'xs': 7, 'sm': 7, 'md': 5, 'lg': 3, 'xl': 3},
 		start_date: '2020-01-22',
 		end_date: '2020-03-12',
 		moving_date: '',
@@ -63,6 +65,46 @@ window.app = new Vue({
 			labelStyle: void 0,
 			labelActiveStyle: void 0,
 		},
+		range_slider_options: {
+			// dotSize: 14,
+			// width: 'auto',
+			// height: 4,
+			// contained: false,
+			// direction: 'ltr',
+			// data: null,
+			// min: 2,
+			// max: 100,
+			// interval: 3,
+			// disabled: false,
+			// clickable: true,
+			// duration: 0.5,
+			// adsorb: true,
+			// lazy: false,
+			// tooltip: 'active',
+			// tooltipPlacement: 'top',
+			// tooltipFormatter: void 0,
+			// useKeyboard: false,
+			// keydownHook: null,
+			// dragOnClick: false,
+			// enableCross: true,
+			// fixed: false,
+			// minRange: 3,
+			// maxRange: void 0,
+			// order: true,
+			// marks: false,
+			// dotOptions: void 0,
+			// process: true,
+			processDragable: true,
+			processDraggable: true,
+			// dotStyle: void 0,
+			// railStyle: void 0,
+			// processStyle: void 0,
+			// tooltipStyle: void 0,
+			// stepStyle: void 0,
+			// stepActiveStyle: void 0,
+			// labelStyle: void 0,
+			// labelActiveStyle: void 0,
+		},
 		data_from_source: {},
 		plain_data: [
 			['Country', 'Popu01larity'],
@@ -77,6 +119,15 @@ window.app = new Vue({
 	},
 	created: function()
 	{
+		if (window.ed.is_chart)
+		{
+		let this_chart_key = Object.keys(this.$route.query)[0];
+		let charts_copy = Object.assign({}, {}, this.charts);
+		this.charts = {};
+		this.charts[this_chart_key] = charts_copy[this_chart_key];
+		//console.log("this_chart_key", this_chart_key);
+		}
+		console.log("window.app.$route.query", this.$route.query, );
 		this.date_slider_changed = debounce(
 			function(chart_key)
 			{
@@ -84,6 +135,57 @@ window.app = new Vue({
 				this.$root.recalculate_local_d(chart_key);
 				this.$root.reload_chart_data(chart_key);
 				console.log("date_slider_changed END", chart_key);
+			}, 10);
+		this.region_datatype_changed = debounce(
+			function(chart_key)
+			{
+				console.log("region_datatype_changed START", chart_key);
+				this.$root.reload_chart_data(chart_key);
+				console.log("region_datatype_changed END", chart_key);
+			}, 10);
+		this.range_date_slider_changed = debounce(
+			function(chart_key)
+			{
+				console.log("range_date_slider_changed START", chart_key);
+				this.$root.recalculate_local_dr(chart_key);
+				this.$root.set_route_query();
+				replace_title_vars(chart_key);
+				this.$root.refilter_chart_data_by_start_and_end_dates(chart_key);
+				console.log("range_date_slider_changed END", chart_key);
+			}, 10);
+		this.scale_type_changed = debounce(
+			function(chart_key, scale_type_tf)
+			{
+				console.log("scale_type_changed START", chart_key, scale_type_tf);
+				// this.$root.recalculate_local_l(chart_key);
+				// TODO: the url is broken now
+				// this.$root.reload_google_chart_data(chart_key)
+				this.$root.charts[chart_key].options.l = scale_type_tf?'m':'n';
+				this.$root.set_route_query();
+				this.$root.redraw(chart_key);
+				console.log("scale_type_changed END", chart_key);
+			}, 10);
+		this.colormap_changed = debounce(
+			function(chart_key)
+			{
+				console.log("scale_type_changed START", chart_key);
+				// this.$root.recalculate_local_l(chart_key);
+				// TODO: the url is broken now
+				// this.$root.reload_google_chart_data(chart_key)
+				this.$root.redraw(chart_key);
+				console.log("scale_type_changed END", chart_key);
+			}, 10);
+		this.chart_format_changed = debounce(
+			function(chart_key, new_format)
+			{
+				console.log("chart_format_changed START", chart_key);
+				// this.$root.recalculate_local_l(chart_key);
+				// TODO: the url is broken now
+				// this.$root.reload_google_chart_data(chart_key)
+				this.$root.charts[chart_key].options.f = new_format;
+				this.$root.set_route_query();
+				this.$root.redraw(chart_key);
+				console.log("chart_format_changed END", chart_key);
 			}, 10);
 		
 		console.log("vue created START");
@@ -115,10 +217,10 @@ window.app = new Vue({
 		let index = 0;
 		while (moving_date_string < window.ed.last_day_iso)
 		{
-			console.log('moving_date_string <= window.ed.last_day_iso', moving_date_string, window.ed.last_day_iso);
+			// c_onsole.log('moving_date_string <= window.ed.last_day_iso', moving_date_string, window.ed.last_day_iso);
 			moving_date_string = this.moving_date.toISOString().slice(0,10);
 			this.date_list.push(moving_date_string);
-			if (index % 3 === 0)
+			if (index % this.show_labels_on_every_nth_day[window.ed.screen_size] === 0)
 			{
 				this.date_labels[moving_date_string] = this.moving_date.toLocaleDateString('en-GB', {});
 			}
@@ -132,16 +234,16 @@ window.app = new Vue({
 		this.moving_date.setDate(this.moving_date.getDate()-1);
 		moving_date_string = this.moving_date.toISOString().slice(0,10);
 		this.date_labels[moving_date_string] = this.moving_date.toLocaleDateString('en-GB', {}); // the last one
-		console.log("this.date_list", this.date_list);
-		console.log("this.date_labels", this.date_labels);
-		console.log("vue created AFTER dates");
+		// c_onsole.log("this.date_list", this.date_list);
+		// c_onsole.log("this.date_labels", this.date_labels);
+		// c_onsole.log("vue created AFTER dates");
 		
 		google.charts.load('current', {
 			'packages':['geochart', 'corechart', 'controls'],
 			// Note: you will need to get a mapsApiKey for your project.
 			// See: https://developers.google.com/chart/interactive/docs/basic_load_libs#load-settings
 			//'mapsApiKey': 'AIzaSyB1tvCMsRfQjKT6Sfr5tnJ3nN2rUsEB4Q8'
-			'mapsApiKey': 'AIzaSyDNqmWZY267S933nSTe0gWK91_wzz7KseU'
+			//'mapsApiKey': 'AIzaSyDNqmWZY267S933nSTe0gWK91_wzz7KseU'
 		});
 		console.log("vue created AFTER google load");
 		for (let chart_key_index in this.charts)
@@ -171,11 +273,16 @@ window.app = new Vue({
 				{
 					for (chart_key in window.app.charts)
 					{
-						if (typeof(window.app.charts[chart_key].force_place)!=='undefined')
+						if (window.app.charts.hasOwnProperty(chart_key))
 						{
-							window.ed.place = window.app.charts[chart_key].force_place
+							if (typeof (window.app.charts[chart_key].force_place) !== 'undefined')
+							{
+								window.ed.place = window.app.charts[chart_key].force_place
+							}
+							//c_onsole.warn("CHART LOOP START", chart_key);
+							window.app.get_chart_data_for_source(chart_key);
+							//c_onsole.warn("CHART LOOP END", chart_key);
 						}
-						window.app.get_chart_data_for_source(chart_key);
 					}
 				});
 			}, 1000);
@@ -188,7 +295,6 @@ window.app = new Vue({
 				chart_key = '';
 				for (chart_key in window.app.charts)
 				{
-					console.log("chart_key", chart_key);
 					
 					if (window.app.charts.hasOwnProperty(chart_key))
 					{
@@ -239,7 +345,7 @@ window.app = new Vue({
 		menu_world: function () {
 			let worlds = {
 				'world': {'uri': '', 'iso': '', 'name': 'World'},
-				'world-without-china': {'uri': 'world-without-china', 'iso': 'world-without-china', 'name': 'World w/o China'},
+				//'world-without-china': {'uri': 'world-without-china', 'iso': 'world-without-china', 'name': 'World w/o China'},
 			};
 			return this.$root.search_place(worlds);
 			
@@ -316,12 +422,12 @@ window.app = new Vue({
 		},
 	watch:
 		{
-			page_title: {
-				immediate: true,
-				handler() {
-					document.title = this.page_title + ' - EpidemicData.com';
-				}
-			}
+			// page_title: {
+			// 	immediate: true,
+			// 	handler() {
+			// 		document.title = this.page_title + ' - EpidemicData.com';
+			// 	}
+			// }
 		},
 	components: {
 		'epidemicdataPage': httpVueLoader(window.ed.source_vue_location + '/epidemicdata-page.vue'),

@@ -3,10 +3,19 @@
 
 <template>
     <h4>
-        <template v-if="1">
-            <a :href="'/'+window.ed.Country_iso_to[window.ed.place]['uri']" v-html="window.ed.Country_iso_to[window.ed.place]['name']"></a> &raquo;
+        <template v-if="window.ed.is_chart">
+            <template v-if="window.ed.place_type==='country'">
+                <a :href="'/'+window.ed.Country_iso_to[window.ed.place]['uri']" v-html="window.ed.Country_iso_to[window.ed.place]['name']"></a> &raquo; <span v-html="chart.title"></span>
+            </template>
+            <template v-else-if="window.ed.place_type==='region'">
+                <a :href="'/'+window.ed.place" v-html="window.ed.Region_uri_to[window.ed.place]['name']"></a> &raquo; <span v-html="chart.title"></span>
+            </template>
         </template>
-        <a :href="chart_link" v-html="chart.title"></a></h4>
+        <template v-else>
+            <a :href="chart_link" v-html="chart.title" :class="{'black':($root.charts[chart_key].image_generating!==0)}"></a>
+        </template>
+
+    </h4>
 </template>
 
 <script>
@@ -29,28 +38,11 @@
         },
         computed:
             {
-                chart_link: function()
-                {
-                    let chart_options_to_url = {'p': window.ed.place};
-                    if (
-                        (typeof(this.$root.charts[this.chart_key])!=='undefined') &&
-                        (typeof(this.$root.charts[this.chart_key].options)!=='undefined')  &&
-                        (typeof(this.$route.query[this.chart_key])!=='undefined')
-                    )
-                    {
-						// let chart_options_from_url = {};
-						console.log("this.$route.query[this.chart_key]", this.chart_key, this.$route.query[this.chart_key]);
-                        let chart_options_from_url = JSON.parse(this.$route.query[this.chart_key]);
-                        chart_options_to_url = Object.assign({}, chart_options_to_url, chart_options_from_url);
-                    }
-                    let ret = '/chart/?'+this.chart_key+'='+JSON.stringify(chart_options_to_url);
-                    return ret;
-                }
             },
 		components: {
 			'epidemicdata-info-div': httpVueLoader(window.ed.source_vue_location + '/epidemicdata-info-div.vue'),
 			'epidemicdata-imagegenerating-div': httpVueLoader(window.ed.source_vue_location + '/epidemicdata-imagegenerating-div.vue'),
 		},
-		//mixins: [my_mixin],
+		mixins: [my_mixin],
 	}
 </script>

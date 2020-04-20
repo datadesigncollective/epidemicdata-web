@@ -7,12 +7,12 @@
 <template>
     <div>
     <div style="-border: 1px solid red; margin: 4px; padding: 4px;" :class="'chart_type_'+chart.chart_type">
-        <b-container fluid >
+        <div>
             <b-row style="">
-                <b-col class="main_bar" cols="10">
+                <b-col class="main_bar chart_main_bar col-12 col-lg-10">
                     <div :id="'any_chart_'+chart_key+'_container'">
-                        <div :id="'any_chart_'+chart_key+'_outer'" style="position: relative;">
-                            <div :id="'any_chart_'+chart_key+''" style="width: 100%; height: 600px;" ></div>
+                        <div :id="'any_chart_'+chart_key+'_outer'" class="anychart_map_outer">
+                            <div :id="'any_chart_'+chart_key+''"  class="anychart_map_div"></div>
                             <!--<div :id="'any_chart_'+chart_key+'_overlay'">
                                 <div class="overlay_map_title" style="font-size: 14px; font-weight: bold; position: absolute; top: 10px; left: 10px;" v-html="$root.charts[chart_key].options.c+' on '+$root.charts[chart_key].local_d"></div>
                             </div>-->
@@ -32,11 +32,11 @@
                             ></vue-slider>
                         </div>
                 </b-col>
-                <b-col class="side_bar" cols="2">
+                <b-col class="anychart_map_sidebar chart_sidebar col-12 col-lg-2">
                     <template v-for="(column_data, column_key) in $root.charts[chart_key].columns">
                         <b-form-row>
-                            <b-col cols="1"><input type="radio" :name="chart_key+'_type'" v-model="$root.charts[chart_key].options.c" :value="column_key" @change="$root.reload_chart_data(chart_key)" :id="chart_key+'_type_'+column_data.column_key" /></b-col>
-                            <b-col cols="11"><label :for="chart_key+'_type_'+column_data.column_key" v-html="column_data.display_name"></label></b-col>
+                            <b-col cols="2"><input type="radio" :name="chart_key+'_type'" v-model="$root.charts[chart_key].options.c" :value="column_key" @change="$root.reload_chart_data(chart_key)" :id="chart_key+'_type_'+column_data.column_key" /></b-col>
+                            <b-col cols="10"><label :for="chart_key+'_type_'+column_data.column_key" v-html="column_data.display_name"></label></b-col>
                         </b-form-row>
                     </template>
                 </b-col>
@@ -69,7 +69,7 @@
                     </div>
                 </b-col>
             </b-row>
-        </b-container>
+        </div>
     </div>
     </div>
 </template>

@@ -267,22 +267,37 @@ function drawDashboard(plain_data) {
 
 // TODO v2: weekly bontás
 
+let dt = new Date(window.ed.last_refresh_time_iso);
+window.ed.last_refresh_time_locale = dt.toLocaleString('en-GB', {});
+
+window.ed.format_codes_to_labels = {
+	'l': 'Line',
+	'a': 'Area',
+	'b': 'Bars',
+};
 
 window.ed.Regions = {
 	'world-without-china': {'name': 'World (without China)', 'data_source': 'global_sum_by_country/sum_by_country_without_china_%c%'},
 };
 
 
-path = window.location.pathname.split('/');
-console.log("path", window.location.pathname, path);
-if( (typeof(path[1])==='undefined') || path[1]=='')
+
+window.ed.is_chart = 0;
+if( (typeof(path[path.length-1])!=='undefined') && path[path.length-1]==='chart')
+{
+window.ed.is_chart = 1;
+let path_chart = path.pop();
+console.log('new path', path);
+}
+
+if( (typeof(path[path.length-1])==='undefined') || path[path.length-1]==='')
 {
 window.ed.place='world';
 window.ed.place_type='world';
 }
-else if(path[1].substr(0, 5)==='world')
+else if(path[path.length-1].substr(0, 5)==='world')
 {
-window.ed.place=path[1];
+window.ed.place=path[path.length-1];
 window.ed.place_type='world';
 }
 else if (window.location.pathname==='/about/')
@@ -290,15 +305,29 @@ else if (window.location.pathname==='/about/')
 window.ed.place='about';
 window.ed.place_type=null;
 }
-else if (typeof(window.ed.Country_uri_to_iso[path[1]])!=='undefined')
+else if (window.location.pathname==='/most-affected/')
 {
-window.ed.place=window.ed.Country_uri_to_iso[path[1]];
+window.ed.place='most-affected';
+window.ed.place_type=null;
+}
+else if (window.location.pathname==='/regions/')
+{
+window.ed.place='regions';
+window.ed.place_type=null;
+}
+else if (typeof(window.ed.Country_uri_to_iso[path[path.length-1]])!=='undefined')
+{
+window.ed.place=window.ed.Country_uri_to_iso[path[path.length-1]];
 window.ed.place_type='country';
 }
-else if (typeof(window.ed.Regions[path[1]])!=='undefined')
+else if (typeof(window.ed.Region_uri_to[path[path.length-1]])!=='undefined')
 {
-window.ed.place=path[1];
+window.ed.place=path[path.length-1];
 window.ed.place_type='region';
+	if(path[path.length-1].substr(0, 5)==='most-')
+	{
+	window.ed.place_is_most=true;
+	}
 }
 else
 {
@@ -308,7 +337,10 @@ console.log("window.ed.place", window.ed.place_type, window.ed.place);
 
 window.ed.charts = {};
 
-window.ed.charts['summary_table'] = Object.assign({}, {}, window.ed.chart_templates['summary_table']);
+if (!window.ed.place_is_most)
+{
+	window.ed.charts['summary_table'] = Object.assign({}, {}, window.ed.chart_templates['summary_table']);
+}
 
 	switch (window.ed.place_type)
 	{
@@ -316,6 +348,8 @@ window.ed.charts['summary_table'] = Object.assign({}, {}, window.ed.chart_templa
 			window.ed.charts['global_map_plain_new'] = Object.assign({}, {}, window.ed.chart_templates['global_map_plain_new']);
 			window.ed.charts['world_graph_area_rad'] = Object.assign({}, {}, window.ed.chart_templates['world_graph_area_rad']);
 			window.ed.charts['world_graph_line_total'] = Object.assign({}, {}, window.ed.chart_templates['world_graph_line_total']);
+			window.ed.charts['world_datatable_total_absolute'] = Object.assign({}, {}, window.ed.chart_templates['world_datatable_total_absolute']);
+			window.ed.charts['world_datatable_total_per_population'] = Object.assign({}, {}, window.ed.chart_templates['world_datatable_total_per_population']);
 			window.ed.charts['world_graph_area_daily'] = Object.assign({}, {}, window.ed.chart_templates['world_graph_area_daily']);
 			window.ed.charts['world_graph_line_daily'] = Object.assign({}, {}, window.ed.chart_templates['world_graph_line_daily']);
 			window.ed.charts['world_graph_area_total_rate'] = Object.assign({}, {}, window.ed.chart_templates['world_graph_area_total_rate']);
@@ -349,6 +383,48 @@ window.ed.charts['summary_table'] = Object.assign({}, {}, window.ed.chart_templa
 			window.ed.charts['country_graph_area_total'] = Object.assign({}, {}, window.ed.chart_templates['country_graph_area_total']);
 			window.ed.charts['country_graph_line_total'] = Object.assign({}, {}, window.ed.chart_templates['country_graph_line_total']);
 			window.ed.charts['country_graph_line_daily'] = Object.assign({}, {}, window.ed.chart_templates['country_graph_line_daily']);
+			window.ed.charts['country_graph_area_total_rate'] = Object.assign({}, {}, window.ed.chart_templates['country_graph_area_total_rate']);
+			window.ed.charts['country_graph_line_total_rate'] = Object.assign({}, {}, window.ed.chart_templates['country_graph_line_total_rate']);
+			window.ed.charts['country_graph_line_daily_rate'] = Object.assign({}, {}, window.ed.chart_templates['country_graph_line_daily_rate']);
+		break;
+		
+		case "region":
+			window.ed.charts['region_graph_line_total_absolute'] = Object.assign({}, {}, window.ed.chart_templates['region_graph_line_total_absolute']);
+			window.ed.charts['region_datatable_total_absolute'] = Object.assign({}, {}, window.ed.chart_templates['region_datatable_total_absolute']);
+			window.ed.charts['region_graph_line_total_per_population'] = Object.assign({}, {}, window.ed.chart_templates['region_graph_line_total_per_population']);
+			window.ed.charts['region_datatable_total_per_population'] = Object.assign({}, {}, window.ed.chart_templates['region_datatable_total_per_population']);
+			// window.ed.charts['country_graph_line_total'] = Object.assign({}, {}, window.ed.chart_templates['country_graph_line_total']);
+			// window.ed.charts['country_graph_line_daily'] = Object.assign({}, {}, window.ed.chart_templates['country_graph_line_daily']);
 		break;
 	}
+
+function replace_title_vars(chart_key)
+{
+	console.log("window.ed.charts[chart_key].options.t", window.ed.charts[chart_key].options.t);
+	window.ed.charts[chart_key].title = window.ed.charts[chart_key].title_template;
+	window.ed.charts[chart_key].full_title = window.ed.charts[chart_key].full_title_template;
+	
+	window.ed.charts[chart_key].title = window.ed.charts[chart_key].title.replace('%P%', get_place_name_from_iso(window.ed.place)).replace('%d%', window.ed.last_day.toLocaleDateString('en-GB')).replace('%dp%', window.ed.last_partial_day.toLocaleDateString('en-GB'));
+	window.ed.charts[chart_key].full_title = window.ed.charts[chart_key].full_title.replace('%P%', get_place_name_from_iso(window.ed.place)).replace('%d%', window.ed.last_day.toLocaleDateString('en-GB')).replace('%dp%', window.ed.last_partial_day.toLocaleDateString('en-GB'));
+	if (typeof(window.ed.charts[chart_key].options.t)!=='undefined')
+	{
+		window.ed.charts[chart_key].title = window.ed.charts[chart_key].title.replace('%T%', get_datetype_name_from_code(window.ed.charts[chart_key].options.t));
+		window.ed.charts[chart_key].full_title = window.ed.charts[chart_key].full_title.replace('%T%', get_datetype_name_from_code(window.ed.charts[chart_key].options.t));
+	}
+	if (typeof(window.ed.charts[chart_key].options.dr)!=='undefined')
+	{
+		let dt0 = new Date(window.ed.charts[chart_key].options.dr[0]);
+		let dt1 = new Date(window.ed.charts[chart_key].options.dr[1]);
+		window.ed.charts[chart_key].title = window.ed.charts[chart_key].title.replace('%dr0%', dt0.toLocaleDateString('en-GB'));
+		window.ed.charts[chart_key].title = window.ed.charts[chart_key].title.replace('%dr1%', dt1.toLocaleDateString('en-GB'));
+		window.ed.charts[chart_key].full_title = window.ed.charts[chart_key].full_title.replace('%dr0%', dt0.toLocaleDateString('en-GB'));
+		window.ed.charts[chart_key].full_title = window.ed.charts[chart_key].full_title.replace('%dr1%', dt1.toLocaleDateString('en-GB'));
+	}
+}
+
+for (let [chart_key, chart] of Object.entries(window.ed.charts))
+{
+	replace_title_vars(chart_key);
+	// window.ed.charts[chart_key]['full_title'] = window.ed.charts[chart_key]['title'] + '<br>' + window.ed.first_day.toLocaleDateString('en-GB')+' - '+window.ed.last_day.toLocaleDateString('en-GB');
+}
 // Vue.prototype.google = google;

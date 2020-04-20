@@ -68,6 +68,20 @@
             </b-row>
             <epidemicdata-imagegenerating-div :chart_key="chart_key" :chart="chart"></epidemicdata-imagegenerating-div>
         </b-container>
+
+
+        <template v-for="(continent, continent_index) in window.ed.continents">
+            <br>
+            <template v-if="typeof(continent['uri'])!=='undefined'">
+                <strong><a :href="'/'+continent['uri']" v-html="continent['name']"></a></strong><br>
+            </template>
+            <template v-else="typeof(continent['uri'])!=='undefined'">
+                <strong><span v-html="continent['name']"></span></strong><br>
+            </template>
+            <template v-for="(region, region_index) in continent['regions']">
+                - <a :href="'/'+region['uri']" v-html="region['name']"></a><br>
+            </template>
+        </template>
     </div>
     </div>
 </template>

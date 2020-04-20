@@ -11,8 +11,7 @@
         <div class="container-fluid">
         <div class="row -sb-topnav -navbar -navbar-expand -navbar-dark bg-dark justify-content-between">
             <div class="col col-xs-6">
-                <a class="-navbar-brand" :href="window.ed.root+'/'" style="outline: 1px solid red;"><img :src="window.ed.root+'/_web_elements/i/epidemicdata-logo.png'" class="logo_image" /></a><!--<button class="btn btn-link btn-sm order-1 order-lg-0" id="sidebarToggle" href="#"><i class="fas fa-bars"></i></button
-        >-->
+                <a class="-navbar-brand" :href="window.ed.root+'/'" style="outline: 1px solid red;"><img :src="window.ed.root+'/_web_elements/i/epidemicdata-logo.png'" class="logo_image" /></a>
             </div>
             <div class="col col-xs-6">
                 <div class="container-fluid">
@@ -21,18 +20,6 @@
                     <div class="col"><a class="nav-link" :href="window.ed.root+'/about/'">About</a></div>
                 </div>
                 </div>
-                <!--<ul class="navbar-nav ml-auto ml-md-0">
-                    <li class="nav-item dropdown"><a class="nav-link" :href="window.ed.root+'/about/'">Countries</a></li>
-                    <li class="nav-item dropdown"><a class="nav-link" :href="window.ed.root+'/about/'">About</a></li>
-                    &lt;!&ndash;<li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" id="userDropdown" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fas fa-user fa-fw"></i></a>
-                        <div class="dropdown-menu dropdown-menu-right" aria-labelledby="userDropdown">
-                            <a class="dropdown-item" href="#">Settings</a><a class="dropdown-item" href="#">Activity Log</a>
-                            <div class="dropdown-divider"></div>
-                            <a class="dropdown-item" href="login.html">Logout</a>
-                        </div>
-                    </li>&ndash;&gt;
-                </ul>-->
             </div>>
         </div>
         </div>
